@@ -6,10 +6,8 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import axiosInstance from "@/app/axiosInstanse";
 import { useRouter } from "next/navigation"; 
-import useAuthStore from "@/lib/base"; 
-import Cookies from "js-cookie"; 
+import axios from "axios"; 
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,68 +20,47 @@ export default function LoginForm() {
   });
   const [errormsg, setErrorMsg] = useState(null);
   const router = useRouter();
-  const { setAdminEmail: setStoreEmail, setFullname: setStoreFullname, setAdminId: setStoreId } =
-    useAuthStore();
 
-  const isValidEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    setLoading(true);
-    setEmailValid(true);
+  const handleSubmit = async (e:any) => {
     e.preventDefault();
-    if (!isValidEmail(email)) {
-      setEmailValid(false);
-      setLoading(false);
-      return;
-    }
-    if (!formData.email || !formData.password) {
-      alert("Please fill in all fields before submitting");
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
+
     try {
-      const response = await axiosInstance.post("/admin/auth/login", formData, {withCredentials: true});
-      if (response.status === 200 || response.status === 201) {
-        const {id, email, fullname } = response.data.data[0];
-        setStoreId(id);
-        setStoreEmail(email);
-        setStoreFullname(fullname);
-        Cookies.set("token", response.data.token, { expires: 3 });
-        router.push("/");
-      }
+      const response = await axios.post("/api/login", formData);
+
+      const { token } = response.data;
+
+      // Store the JWT token in localStorage or cookies
+      localStorage.setItem("authToken", token);
+
+      // Redirect to dashboard or home page
+      router.push("/");
     } catch (error: any) {
-      console.error("Signup error:", error.response?.data || error.message);
-      const errorMsg =
-        error.response?.data?.message || "An error occurred. Please try again";
-      setErrorMsg(errorMsg);
-      alert(errorMsg);
+      setErrorMsg(error.response?.data?.message || "Authentication failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className=" bg-gray-100 py-5 min-h-screen flex items-center">
-      <div className="max-w-md w-full  mx-auto bg-white p-4 md:p-6 rounded-lg">
+    <div className="bg-gray-100 py-5 min-h-screen flex items-center">
+      <div className="max-w-md w-full mx-auto bg-white p-4 md:p-6 rounded-lg">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <div className="w-20 h-20 flex items-center justify-center">
+        <div className="flex justify-center">
+          <div className="w-32 h-32 flex items-center justify-center">
             <Image
               src="/logo.png"
               alt="Logo"
               width={1000}
               height={1000}
-              className="h-full w-full aspect-square"
+              className="h-full w-full aspect-square object-contain"
             />
           </div>
         </div>
 
         {/* Login Form */}
         <form className="space-y-6" onSubmit={handleSubmit}>
-          <h1 className="text-center text-red-600 text-3xl font-semibold">
+          <h1 className="text-center text-zinc-600 text-3xl font-semibold">
             Login
           </h1>
           <div className="space-y-2">
@@ -103,7 +80,7 @@ export default function LoginForm() {
               }}
             />
             {!emailValid && (
-              <p className="text-red-600 text-xs mt-2" id="email-error">
+              <p className="text-zinc-600 text-xs mt-2" id="email-error">
                 Please include a valid email address
               </p>
             )}
@@ -137,15 +114,16 @@ export default function LoginForm() {
           <div className="text-right">
             <Link
               href="/auth/forgot-password"
-              className="text-red-600 hover:text-red-700 text-sm"
+              className="text-zinc-600 hover:text-zinc-700 text-sm"
             >
               Forgot Password?
             </Link>
           </div>
 
-          <Button className="w-full bg-red-600 hover:bg-red-700 h-10 rounded-lg text-sm">
+          <Button className="w-full bg-zinc-600 hover:bg-zinc-700 h-10 rounded-lg text-sm">
             {loading ? "Loading..." : "Login"}
           </Button>
+          {errormsg && <p className="text-red-600 text-sm">{errormsg}</p>}
         </form>
       </div>
     </div>

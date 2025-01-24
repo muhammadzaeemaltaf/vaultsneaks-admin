@@ -1,8 +1,8 @@
 
 import { BoxesIcon } from "lucide-react";
-import { defineField } from "sanity";
+import { defineField, defineType } from "sanity";
 
-export default {
+export const categoriesSchema = defineType({
     name: 'category',
     title: 'Category',
     type: 'document',
@@ -15,5 +15,5 @@ export default {
         description: 'The name of the category',
       })
     ],
-  };
+  });
   

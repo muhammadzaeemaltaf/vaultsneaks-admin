@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import React, { useState } from "react";
 
@@ -56,12 +55,12 @@ const ForgotPassword = () => {
               <form onSubmit={handleSubmit} method="POST">
                 <div className="grid gap-y-4">
                   <div>
-                    <Label
+                    <label
                       htmlFor="email"
                       className="block text-sm font-bold ml-1 mb-2 dark:text-white"
                     >
                       Email address
-                    </Label>
+                    </label>
                     <div className="relative">
                       <Input
                         type="email"

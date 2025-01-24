@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation"; 
 import axios from "axios"; 
+import { useAdminStore } from "@/stores/userStore";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +21,7 @@ export default function LoginForm() {
   });
   const [errormsg, setErrorMsg] = useState(null);
   const router = useRouter();
+  const {setUsers} = useAdminStore()
 
   const handleSubmit = async (e:any) => {
     e.preventDefault();
@@ -28,11 +30,7 @@ export default function LoginForm() {
     try {
       const response = await axios.post("/api/login", formData);
 
-      const { token } = response.data;
-
-      // Store the JWT token in localStorage or cookies
-      localStorage.setItem("authToken", token);
-
+      setUsers(response.data.admin)
       // Redirect to dashboard or home page
       router.push("/");
     } catch (error: any) {

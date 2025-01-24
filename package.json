@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typegen": "npx sanity@latest schema extract && npx sanity@latest typegen generate"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.2",
@@ -25,6 +26,7 @@
     "next-sanity": "^9.8.42",
     "react": "^18",
     "react-dom": "^18",
+    "react-toastify": "^11.0.3",
     "recharts": "^2.15.0",
     "sanity": "^3.71.2",
     "styled-components": "^6.1.14",

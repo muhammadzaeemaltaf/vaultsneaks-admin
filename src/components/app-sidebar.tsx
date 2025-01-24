@@ -1,6 +1,7 @@
 import {
   BellRing,
   BetweenHorizontalStart,
+  Boxes,
   CalendarDays,
   ChevronDown,
   Handshake,
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 import Image from "next/image";
 import Link from "next/link";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 const items = [
   {
@@ -43,10 +45,16 @@ const items = [
     dropdown: true,
   },
   {
+    title: "Categories",
+    url: "/categories",
+    icon: Boxes,
+    dropdown: true,
+  },
+  {
     title: "Orders",
     url: "/orders",
     icon: ShoppingBasket,
-    dropdown: true,
+    dropdown: false,
   },
   {
     title: "Users",
@@ -101,6 +109,30 @@ export function AppSidebar() {
                         <Link href={item.url} className="flex-1">
                           {item.title}
                         </Link>
+                        {item.dropdown && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <ChevronDown className="h-4 w-4 cursor-pointer" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              className="w-56"
+                              align="end"
+                              forceMount
+                            >
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem>
+                                  <Link className="flex-1" href={item.url}>All {item.title}</Link>
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem>
+                                  <Link className="flex-1" href={`${item.url}/add`}>Add {item.title}</Link>
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </div>
                   </SidebarMenuButton>

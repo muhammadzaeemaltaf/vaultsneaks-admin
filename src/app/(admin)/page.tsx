@@ -1,8 +1,14 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Overview } from "@/components/overview";
+import {
+  BoxesIcon,
+  ShoppingBasketIcon,
+  ShoppingCartIcon,
+  UsersIcon,
+} from "lucide-react";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -14,7 +20,10 @@ export default function Home() {
     // Simulate fetching data
     setTimeout(() => {
       setUsers([{ id: 1 }, { id: 2 }, { id: 3 }]);
-      setBrands([{ id: 1, deals: [1, 2] }, { id: 2, deals: [3] }]);
+      setBrands([
+        { id: 1, deals: [1, 2] },
+        { id: 2, deals: [3] },
+      ]);
       setAds([{ id: 1 }, { id: 2 }]);
       setLoading(false);
     }, 1000);
@@ -62,8 +71,9 @@ export default function Home() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                All Users
+              <CardTitle className="text-sm font-medium flex items-center justify-between w-full">
+                Total Products
+                <ShoppingCartIcon className="h-4 w-4" />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -72,8 +82,9 @@ export default function Home() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                All Brands
+              <CardTitle className="text-sm font-medium flex items-center justify-between w-full">
+                Total Categories
+                <BoxesIcon className="h-4 w-4" />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -82,16 +93,25 @@ export default function Home() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">All Deals</CardTitle>
+              <CardTitle className="text-sm font-medium flex items-center justify-between w-full">
+                Total Orders
+                <ShoppingBasketIcon className="h-4 w-4" />
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{brands.reduce((acc:any, brand:any) => acc + (brand.deals?.length || 0), 0)}</div>
+              <div className="text-2xl font-bold">
+                {brands.reduce(
+                  (acc: any, brand: any) => acc + (brand.deals?.length || 0),
+                  0
+                )}
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                All Ads
+              <CardTitle className="text-sm font-medium flex items-center justify-between w-full">
+                Total Users
+                <UsersIcon className="h-4 w-4" />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -102,7 +122,7 @@ export default function Home() {
         <div className="grid">
           <Card>
             <CardHeader className="!px-2 md:px-6">
-              <CardTitle>Code </CardTitle>
+              <CardTitle>Orders</CardTitle>
               <CardContent className="!px-2 md:px-6">
                 <Overview />
               </CardContent>

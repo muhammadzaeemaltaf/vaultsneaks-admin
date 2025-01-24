@@ -33,11 +33,11 @@ export const productSchema = defineType({
       type: "array",
       of: [{ type: "string" }],
     }),
-    {
+    defineField({
       name: "status",
       title: "Status",
       type: "string",
-    },
+    }),
     defineField({
       name: "image",
       title: "Image",

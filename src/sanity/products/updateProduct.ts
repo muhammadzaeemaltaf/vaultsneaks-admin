@@ -1,6 +1,6 @@
 import axios from "axios";
 import { client } from "@/sanity/lib/client";
-import { ProductFormData } from "@/app/(admin)/products/edit/page";
+import { ProductFormData } from "@/components/EditProduct";
 
 async function uploadImageToSanity(imageUrl: string) {
   try {

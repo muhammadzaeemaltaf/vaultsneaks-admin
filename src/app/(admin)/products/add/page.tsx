@@ -9,8 +9,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Plus } from "lucide-react"
+import { getAllCategories } from "@/sanity/category/getAllCategories"
+import { Category } from "../../../../../sanity.types"
+import { Skeleton } from "@/components/ui/skeleton"
+import { addProduct } from "@/sanity/products/addProduct";
+import { useRouter } from "next/navigation"
+import { toast, ToastContainer } from "react-toastify";
 
-interface ProductFormData {
+export interface ProductFormData {
   productName: string
   category: string
   price: number
@@ -43,7 +49,7 @@ export default function ProductForm() {
     price: 0,
     inventory: 0,
     colors: [],
-    status: "draft",
+    status: "Just In",
     image: "",
     description: "",
   })
@@ -51,6 +57,18 @@ export default function ProductForm() {
   const [customColor, setCustomColor] = useState("#000000")
   const [formWidth, setFormWidth] = useState(30) // Initial width percentage
   const [isDragging, setIsDragging] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const categories = await getAllCategories()
+      setCategories(categories); 
+      setLoadingCategories(false);
+    }
+    fetchCategories();
+  }, [])
 
   const handleMouseDown = () => {
     setIsDragging(true)
@@ -59,7 +77,7 @@ export default function ProductForm() {
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
       const newWidth = (e.clientX / window.innerWidth) * 100
-      setFormWidth(Math.min(Math.max(newWidth, 10), 90)) // Keep width between 10% and 90%
+      setFormWidth(Math.min(Math.max(newWidth, 10), 90))
     }
   }
 
@@ -108,14 +126,23 @@ export default function ProductForm() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log(formData)
-  }
+  
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const result = await addProduct(formData);
+      toast.success("Product added successfully!");
+      router.push("/products");
+    } catch (error) {
+      toast.error("Failed to add product.");
+      console.error("Failed to add product:", error);
+    }
+  };
 
   return (
     <div className="container mx-auto px-6">
-      <div className={`grid grid-cols-[${formWidth}%_auto] gap-8`}>
+      <div className={`grid grid-cols-[30%_auto] gap-8`}>
         {/* Form Section */}
         <form onSubmit={handleSubmit} className="space-y-6 py-6">
           <div className="space-y-4">
@@ -130,19 +157,25 @@ export default function ProductForm() {
 
             <div>
               <Label htmlFor="category">Category</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="shoes">Shoes</SelectItem>
-                  <SelectItem value="clothing">Clothing</SelectItem>
-                  <SelectItem value="accessories">Accessories</SelectItem>
-                </SelectContent>
-              </Select>
+              {loadingCategories ? (
+                <Skeleton className="h-10 w-full" />
+              ) : (
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category._id} value={category.categoryName || ''}>
+                        {category.categoryName || 'Unknown Category'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -225,16 +258,11 @@ export default function ProductForm() {
 
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="status"
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              />
             </div>
 
             <div>
@@ -318,6 +346,8 @@ export default function ProductForm() {
         className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize"
         onMouseDown={handleMouseDown}
       />
+
+      <ToastContainer />
     </div>
   )
 }

@@ -18,12 +18,16 @@ import { getAllProducts } from "@/sanity/products/getAllProducts";
 import { Product } from "../../../../sanity.types";
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton component
 import SingleProduct from "@/components/SingleProduct"; // Import SingleProduct component
+import Link from "next/link";
+import { client } from "@/sanity/lib/client";
+import { toast } from "react-toastify";
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: string } | null>(null);
   const [loading, setLoading] = useState(true); // Add loading state
+  const [deleting, setDeleting] = useState(true); // Add loading state
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null); // Add state for selected product
 
   useEffect(() => {
@@ -79,8 +83,25 @@ export default function ProductsPage() {
     );
   };
 
-  const handleRowClick = (productName: string) => {
+  const handleRowClick = (event: React.MouseEvent, productName: string) => {
+    // Prevent row click if the event target is a button or inside a button
+    if ((event.target as HTMLElement).closest("button") || (event.target as HTMLElement).closest(".dropdown-menu")) return;
     setSelectedProduct(productName);
+  };
+
+  const handleDeleteConfirm = async (productId: string) => {
+    if (!productId) return;
+    setDeleting(true);
+    try {
+      await client.delete(productId);
+      const updatedProducts = products.filter((product) => product._id !== productId);
+      setProducts(updatedProducts);
+      toast.success("Product deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleCloseSidebar = () => {
@@ -123,7 +144,8 @@ export default function ProductsPage() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button>
+          <Button className="relative">
+            <Link href="/products/add" className="absolute inset-0"/>
             <Plus className="mr-2 h-4 w-4" /> Add Product
           </Button>
         </div>
@@ -198,7 +220,7 @@ export default function ProductsPage() {
             </TableHeader>
             <TableBody>
               {sortedProducts.map((product) => (
-                <TableRow key={product._id} onClick={() => handleRowClick(product.productName ?? "")} className="cursor-pointer">
+                <TableRow key={product._id} onClick={(e) => handleRowClick(e, product.productName ?? "")} className="cursor-pointer">
                   <TableCell className="font-medium">{highlightText(product.productName ?? "", searchTerm)}</TableCell>
                   <TableCell>{highlightText(product.category ?? "", searchTerm)}</TableCell>
                   <TableCell>Rs {product.price}</TableCell>
@@ -224,11 +246,11 @@ export default function ProductsPage() {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="dropdown-menu">
                         <DropdownMenuItem>
                           <Edit className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDeleteConfirm(product._id)}>
                           <Trash className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>

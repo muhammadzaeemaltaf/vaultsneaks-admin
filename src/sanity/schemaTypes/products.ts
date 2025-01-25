@@ -15,7 +15,9 @@ export const productSchema = defineType({
     defineField({
       name: "category",
       title: "Category",
-      type: "string",
+      type: "reference", 
+      to: [{ type: "category" }],
+      description: "Select a category for this product",
     }),
     defineField({
       name: "price",

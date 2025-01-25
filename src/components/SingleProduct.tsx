@@ -124,7 +124,7 @@ const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) =
                   </div>
                   <div className="bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-md">
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Category:</span>{" "}
-                    <span className="text-sm text-  -800 dark:text-white">{product.category}</span>
+                    <span className="text-sm text-gray-800 dark:text-white">{product.category && typeof product.category === 'object' && 'name' in product.category ? (product.category as { name: string }).name : 'Unknown Category'}</span>
                   </div>
                 </div>
               ) : (

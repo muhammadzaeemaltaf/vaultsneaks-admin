@@ -167,6 +167,11 @@ export const orderSchema = defineType({
       type: "datetime",
       validation: (Rule) => Rule.required(),
     }),
+    defineField({
+      name: "orderDetails",
+      title: "Order Details",
+      type: "text",
+    }),
   ],
   preview: {
     select: {

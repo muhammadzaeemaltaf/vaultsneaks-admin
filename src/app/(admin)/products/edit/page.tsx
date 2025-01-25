@@ -10,11 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Plus } from "lucide-react"
 import { getAllCategories } from "@/sanity/category/getAllCategories"
-import { Category } from "../../../../../sanity.types"
+import { Category, Product } from "../../../../../sanity.types"
 import { Skeleton } from "@/components/ui/skeleton"
-import { addProduct } from "@/sanity/products/addProduct";
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast, ToastContainer } from "react-toastify";
+import { getProductByName } from "@/sanity/products/getProductByName"
+import { updateProduct } from "@/sanity/products/updateProduct"; // Import updateProduct function
+import { urlFor } from "@/sanity/lib/image"
 import LoadingSpinner from "@/components/LoadingSpinner"
 
 export interface ProductFormData {
@@ -43,7 +45,7 @@ const PRESET_COLORS = [
     "#FFC0CB",
   ]
 
-export default function ProductForm() {
+export default function Edit() {
   const [formData, setFormData] = useState<ProductFormData>({
     productName: "",
     category: "",
@@ -60,8 +62,37 @@ export default function ProductForm() {
   const [isDragging, setIsDragging] = useState(false)
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const [initialData, setInitialData] = useState<Product | null>(null);
+  const searchParams = useSearchParams();
+  const name = searchParams.get('name'); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+
+  useEffect(() => {
+    if (name) {
+      const fetchProduct = async () => {
+        const fetchedProduct = await getProductByName(name);
+        if (Array.isArray(fetchedProduct) && fetchedProduct.length > 0) {
+          setInitialData(fetchedProduct[0]);
+          setFormData({
+            productName: fetchedProduct[0].productName || "",
+            category: typeof fetchedProduct[0].category === 'string' ? fetchedProduct[0].category : '',
+            price: fetchedProduct[0].price || 0,
+            inventory: fetchedProduct[0].inventory || 0,
+            colors: fetchedProduct[0].colors || [],
+            status: fetchedProduct[0].status || "",
+            image: typeof fetchedProduct[0].image === 'string' ? fetchedProduct[0].image : fetchedProduct[0].image?.asset?._ref || "",
+            description: fetchedProduct[0].description || "",
+          });
+        } else {
+          setInitialData(null);
+        }
+        setLoadingProduct(false);
+      };
+      fetchProduct();
+    }
+  }, [name]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -128,18 +159,20 @@ export default function ProductForm() {
     }
   }
 
-  
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const result = await addProduct(formData);
-      toast.success("Product added successfully!");
+      if (initialData) {
+        await updateProduct(formData, initialData._id);
+        toast.success("Product updated successfully!");
+      } else {
+        toast.error("Failed to update product.");
+      }
       router.push("/products");
     } catch (error) {
-      toast.error("Failed to add product.");
-      console.error("Failed to add product:", error);
+      toast.error("Failed to update product.");
+      console.error("Failed to update product:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -151,7 +184,7 @@ export default function ProductForm() {
         {/* Form Section */}
         <form onSubmit={handleSubmit} className="space-y-6 py-6">
           <div className="space-y-4">
-            {loadingCategories ? (
+            {loadingProduct ? (
               <>
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
@@ -315,7 +348,7 @@ export default function ProductForm() {
           <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden w-72">
             {formData.image ? (
               <Image
-                src={formData.image}
+                src={formData.image.startsWith('data:') ? formData.image : urlFor(formData.image).url() || ""}
                 alt={formData.productName}
                 fill
                 className="object-cover"

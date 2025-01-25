@@ -21,6 +21,7 @@ import SingleProduct from "@/components/SingleProduct"; // Import SingleProduct 
 import Link from "next/link";
 import { client } from "@/sanity/lib/client";
 import { toast } from "react-toastify";
+import { updateProduct } from "@/sanity/products/updateProduct"; // Import updateProduct function
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,6 +30,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true); // Add loading state
   const [deleting, setDeleting] = useState(true); // Add loading state
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null); // Add state for selected product
+  const [updating, setUpdating] = useState(false); // Add updating state
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -103,6 +105,23 @@ export default function ProductsPage() {
       setDeleting(false);
     }
   };
+
+  // const handleUpdateProduct = async (productId: string, updatedData: Product) => {
+  //   setUpdating(true);
+  //   try {
+  //     await updateProduct(updatedData, productId);
+  //     const updatedProducts = products.map((product) =>
+  //       product._id === productId ? { ...product, ...updatedData } : product
+  //     );
+  //     setProducts(updatedProducts);
+  //     toast.success("Product updated successfully!");
+  //   } catch (error) {
+  //     console.error("Error updating product:", error);
+  //     toast.error("Failed to update product.");
+  //   } finally {
+  //     setUpdating(false);
+  //   }
+  // };
 
   const handleCloseSidebar = () => {
     setSelectedProduct(null);
@@ -222,7 +241,7 @@ export default function ProductsPage() {
               {sortedProducts.map((product) => (
                 <TableRow key={product._id} onClick={(e) => handleRowClick(e, product.productName ?? "")} className="cursor-pointer">
                   <TableCell className="font-medium">{highlightText(product.productName ?? "", searchTerm)}</TableCell>
-                  <TableCell>{highlightText(product.category ?? "", searchTerm)}</TableCell>
+                  <TableCell>{highlightText(typeof product.category === "string" ? product.category : "", searchTerm)}</TableCell>
                   <TableCell>Rs {product.price}</TableCell>
                   <TableCell>{product.inventory}</TableCell>
                   <TableCell>
@@ -247,7 +266,8 @@ export default function ProductsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="dropdown-menu">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="relative">
+                      <Link href={`/products/edit?name=${product.productName}`} className="absolute inset-0"/> 
                           <Edit className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDeleteConfirm(product._id)}>
@@ -262,7 +282,7 @@ export default function ProductsPage() {
           </Table>
         )}
       </div>
-      {selectedProduct && <SingleProduct productName={selectedProduct} onClose={handleCloseSidebar} />}
+      {selectedProduct && <SingleProduct productName={selectedProduct} onClose={handleCloseSidebar}  />}
     </div>
   );
 }

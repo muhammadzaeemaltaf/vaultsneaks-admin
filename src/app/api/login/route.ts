@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const admin = await authenticateAdmin(email, password);
 
     // Generate a JWT token
-    const token = jwt.sign(
+    const admin_token = jwt.sign(
       { email: admin.email, role: admin.role },
       'NxcFKrlHrzKu6sa6BE5Kpo1ku-oQgmyjQ3dN_HRBSdnUZhh-Ee5_53tdW0tH4LTp', 
       { expiresIn: '1d' }
@@ -49,10 +49,10 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json({ message: 'Login successful' , admin: admin });
 
-    // Set the token in a cookie
+    // Set the admin_token in a cookie
     response.cookies.set({
-      name: 'token',
-      value: token,
+      name: 'admin_token',
+      value: admin_token,
       httpOnly: true, // Prevent client-side JavaScript access
       secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       maxAge: 60 * 60 * 24, // 1 day

@@ -9,24 +9,31 @@ import {
   ShoppingCartIcon,
   UsersIcon,
 } from "lucide-react";
+import { getAllProducts } from "@/sanity/products/getAllProducts";
+import { getAllCategories } from "@/sanity/category/getAllCategories";
+import { getAllOrders } from "@/sanity/orders/getAllOrders";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<any>([]);
+  const [categories, setCategories] = useState<any>([]);
+  const [orders, setOrders] = useState<any>([]);
   const [users, setUsers] = useState<any>([]);
-  const [brands, setBrands] = useState<any>([]);
-  const [ads, setAds] = useState<any>([]);
 
   useEffect(() => {
-    // Simulate fetching data
-    setTimeout(() => {
-      setUsers([{ id: 1 }, { id: 2 }, { id: 3 }]);
-      setBrands([
-        { id: 1, deals: [1, 2] },
-        { id: 2, deals: [3] },
+    const fetchData = async () => {
+      const [productsData, categoriesData, ordersData] = await Promise.all([
+        getAllProducts(),
+        getAllCategories(),
+        getAllOrders(),
       ]);
-      setAds([{ id: 1 }, { id: 2 }]);
+      setProducts(productsData);
+      setCategories(categoriesData);
+      setOrders(ordersData);
       setLoading(false);
-    }, 1000);
+    };
+
+    fetchData();
   }, []);
 
   if (loading) {
@@ -52,14 +59,6 @@ export default function Home() {
               <div className="h-96 bg-gray-200 rounded-xl"></div>
             </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-            <div className="col-span-3 animate-pulse">
-              <div className="h-72 bg-gray-200 rounded-xl"></div>
-            </div>
-            <div className="col-span-3 animate-pulse">
-              <div className="h-72 bg-gray-200 rounded-xl"></div>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -77,7 +76,7 @@ export default function Home() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
+              <div className="text-2xl font-bold">{products.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -88,7 +87,7 @@ export default function Home() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{brands.length}</div>
+              <div className="text-2xl font-bold">{categories.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -99,12 +98,7 @@ export default function Home() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {brands.reduce(
-                  (acc: any, brand: any) => acc + (brand.deals?.length || 0),
-                  0
-                )}
-              </div>
+              <div className="text-2xl font-bold">{orders.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -115,7 +109,7 @@ export default function Home() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{ads.length}</div>
+              <div className="text-2xl font-bold">{users.length}</div>
             </CardContent>
           </Card>
         </div>

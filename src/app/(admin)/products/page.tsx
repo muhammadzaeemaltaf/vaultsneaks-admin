@@ -20,8 +20,9 @@ import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton componen
 import SingleProduct from "@/components/SingleProduct"; // Import SingleProduct component
 import Link from "next/link";
 import { client } from "@/sanity/lib/client";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { updateProduct } from "@/sanity/products/updateProduct"; // Import updateProduct function
+import { set } from "sanity";
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -31,12 +32,16 @@ export default function ProductsPage() {
   const [deleting, setDeleting] = useState(true); // Add loading state
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null); // Add state for selected product
   const [updating, setUpdating] = useState(false); // Add updating state
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null); // Add state for deleting product ID
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const products = await getAllProducts();
-      setProducts(products);
-      setLoading(false); // Set loading to false after products are fetched
+      setLoading(true); 
+      setTimeout(async () => {
+        const products = await getAllProducts();
+        setProducts(products);
+        setLoading(false); // Set loading to false after products are fetched
+      }, 3000);
     };
     fetchProducts();
   }, []);
@@ -45,6 +50,7 @@ export default function ProductsPage() {
     setLoading(true);
     const products = await getAllProducts();
     setProducts(products);
+    console.log(products)
     setLoading(false);
   };
 
@@ -86,13 +92,13 @@ export default function ProductsPage() {
   };
 
   const handleRowClick = (event: React.MouseEvent, productName: string) => {
-    // Prevent row click if the event target is a button or inside a button
     if ((event.target as HTMLElement).closest("button") || (event.target as HTMLElement).closest(".dropdown-menu")) return;
     setSelectedProduct(productName);
   };
 
   const handleDeleteConfirm = async (productId: string) => {
     if (!productId) return;
+    setDeletingProductId(productId); // Set deleting product ID
     setDeleting(true);
     try {
       await client.delete(productId);
@@ -101,8 +107,10 @@ export default function ProductsPage() {
       toast.success("Product deleted successfully!");
     } catch (error) {
       console.error("Error deleting product:", error);
+      toast.error("Failed to delete product.");
     } finally {
       setDeleting(false);
+      setDeletingProductId(null); // Reset deleting product ID
     }
   };
 
@@ -240,42 +248,55 @@ export default function ProductsPage() {
             <TableBody>
               {sortedProducts.map((product) => (
                 <TableRow key={product._id} onClick={(e) => handleRowClick(e, product.productName ?? "")} className="cursor-pointer">
-                  <TableCell className="font-medium">{highlightText(product.productName ?? "", searchTerm)}</TableCell>
-                  <TableCell>{highlightText(typeof product.category === "string" ? product.category : "", searchTerm)}</TableCell>
-                  <TableCell>Rs {product.price}</TableCell>
-                  <TableCell>{product.inventory}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        product.status === "In Stock"
-                          ? "default"
-                          : product.status === "Low Stock"
-                          ? "outline"
-                          : "destructive"
-                      }
-                    >
-                      {product.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="dropdown-menu">
-                        <DropdownMenuItem className="relative">
-                      <Link href={`/products/edit?name=${product.productName}`} className="absolute inset-0"/> 
-                          <Edit className="mr-2 h-4 w-4" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteConfirm(product._id)}>
-                          <Trash className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {deletingProductId === product._id ? (
+                    <>
+                      <TableCell><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-6 w-full" /></TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell className="font-medium">{highlightText(product.productName ?? "", searchTerm)}</TableCell>
+                      <TableCell>{highlightText(typeof product.category === "string" ? product.category : "", searchTerm)}</TableCell>
+                      <TableCell>Rs {product.price}</TableCell>
+                      <TableCell>{product.inventory}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            product.status === "In Stock"
+                              ? "default"
+                              : product.status === "Low Stock"
+                              ? "outline"
+                              : "destructive"
+                          }
+                        >
+                          {product.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="dropdown-menu">
+                            <DropdownMenuItem className="relative">
+                          <Link href={`/products/edit?name=${product.productName}`} className="absolute inset-0"/> 
+                              <Edit className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteConfirm(product._id)}>
+                              <Trash className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
@@ -283,6 +304,7 @@ export default function ProductsPage() {
         )}
       </div>
       {selectedProduct && <SingleProduct productName={selectedProduct} onClose={handleCloseSidebar}  />}
+      <ToastContainer />
     </div>
   );
 }

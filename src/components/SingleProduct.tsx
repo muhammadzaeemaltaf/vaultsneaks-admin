@@ -31,6 +31,8 @@ const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) =
     const fetchProduct = async () => {
       setLoading(true)
       const fetchedProduct = await getProductByName(productName)
+
+      console.log(fetchedProduct)
       if (Array.isArray(fetchedProduct) && fetchedProduct.length > 0) {
         setProduct(fetchedProduct[0])
       } else {
@@ -113,6 +115,18 @@ const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) =
                   </div>
                   <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">{product.productName}</h1>
                   <p className="text-gray-600 dark:text-gray-300">{product.description}</p>
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-xl font-bold">Colors:</h3>
+                    <div className="flex items-center gap-2">
+                      {product.colors?.map((color, index) => (
+                        <div
+                          key={index}
+                          className="w-6 h-6 rounded-full border"
+                          style={{ backgroundColor: color }}
+                        ></div>
+                      ))}
+                    </div>
+                  </div>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center text-green-600 dark:text-green-400">
                       <span className="text-2xl font-bold">Rs {product.price}</span>
@@ -124,7 +138,7 @@ const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) =
                   </div>
                   <div className="bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-md">
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Category:</span>{" "}
-                    <span className="text-sm text-gray-800 dark:text-white">{product.category && typeof product.category === 'object' && 'name' in product.category ? (product.category as { name: string }).name : 'Unknown Category'}</span>
+                    <span className="text-sm text-gray-800 dark:text-white">{typeof product.category === 'string' ? product.category : 'Unknown Category'}</span>
                   </div>
                 </div>
               ) : (

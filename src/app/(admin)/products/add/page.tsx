@@ -19,7 +19,7 @@ import LoadingSpinner from "@/components/LoadingSpinner"
 
 export interface ProductFormData {
   productName: string
-  category: string
+  category: { _type: 'reference', _ref: string }
   price: number
   inventory: number
   colors: string[]
@@ -46,7 +46,7 @@ const PRESET_COLORS = [
 export default function ProductForm() {
   const [formData, setFormData] = useState<ProductFormData>({
     productName: "",
-    category: "",
+    category: { _type: 'reference', _ref: "" },
     price: 0,
     inventory: 0,
     colors: [],
@@ -178,15 +178,15 @@ export default function ProductForm() {
                     <Skeleton className="h-10 w-full" />
                   ) : (
                     <Select
-                      value={formData.category}
-                      onValueChange={(value) => setFormData({ ...formData, category: value })}
+                      value={formData.category._ref}
+                      onValueChange={(value) => setFormData({ ...formData, category: { _type: 'reference', _ref: value } })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
-                          <SelectItem key={category._id} value={category.categoryName || ''}>
+                          <SelectItem key={category._id} value={category._id}>
                             {category.categoryName || 'Unknown Category'}
                           </SelectItem>
                         ))}
@@ -330,7 +330,7 @@ export default function ProductForm() {
 
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Category:</span>
-              <span className="text-sm font-medium">{formData.category || "Not set"}</span>
+              <span className="text-sm font-medium">{categories.find(cat => cat._id === formData.category._ref)?.categoryName || "Not set"}</span>
             </div>
 
             {formData.colors.length > 0 && (

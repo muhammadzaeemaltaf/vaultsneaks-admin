@@ -6,7 +6,11 @@ export const getProductByName = async (name: string) => {
              *[
                  _type == "product"
                 && productName == $name
-             ]
+             ]{
+              ...,
+    "category": category->categoryName
+
+             }
         
         `);
 

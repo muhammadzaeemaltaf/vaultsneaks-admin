@@ -10,8 +10,11 @@ export const getAllProducts = async (sortBy = "productName") => {
     sortField = "productName";
   }
 
-  const ALL_PRODUCTS_QUERY = `*[_type == "product"] | order(${sortField} asc)`;
-  try {
+  const ALL_PRODUCTS_QUERY = `*[_type == "product"] | order(${sortField} asc) {
+    ...,
+    "category": category->categoryName
+  }`;
+    try {
     const products = await client.fetch(ALL_PRODUCTS_QUERY);
     return products || [];
   } catch (error) {

@@ -8,7 +8,6 @@ export const useAdminStore = create<any>()(
           users: [],
           setUsers: (users: any) => set((state: any) => ({ ...state, users })),
           clearUsers: () => set((state: any) => ({ ...state, users: [] })),
-          clearAdminDetails: () => set((state: any) => ({ ...state, adminDetails: null })), // Add this line
         }),
         {
           name: "admin-storage",

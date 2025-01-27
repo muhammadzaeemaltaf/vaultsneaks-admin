@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     // Generate a JWT token
     const admin_token = jwt.sign(
       { email: admin.email, role: admin.role },
-      'NxcFKrlHrzKu6sa6BE5Kpo1ku-oQgmyjQ3dN_HRBSdnUZhh-Ee5_53tdW0tH4LTp', 
+      process.env.NODE_ENV, 
       { expiresIn: '1d' }
     );
 

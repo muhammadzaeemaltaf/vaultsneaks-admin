@@ -12,6 +12,7 @@ import {
 import { getAllProducts } from "@/sanity/products/getAllProducts";
 import { getAllCategories } from "@/sanity/category/getAllCategories";
 import { getAllOrders } from "@/sanity/orders/getAllOrders";
+import { getAllUsers } from "@/sanity/user/getAllUsers";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -22,14 +23,16 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [productsData, categoriesData, ordersData] = await Promise.all([
+      const [productsData, categoriesData, ordersData, userData] = await Promise.all([
         getAllProducts(),
         getAllCategories(),
         getAllOrders(),
+        getAllUsers(),
       ]);
       setProducts(productsData);
       setCategories(categoriesData);
       setOrders(ordersData);
+      setUsers(userData);
       setLoading(false);
     };
 

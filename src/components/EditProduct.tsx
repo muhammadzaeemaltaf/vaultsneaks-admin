@@ -113,15 +113,18 @@ export default function Edit() {
       const fetchProduct = async () => {
         const fetchedProduct = await getProductByName(decodeURIComponent(name));
         if (Array.isArray(fetchedProduct) && fetchedProduct.length > 0) {
-          setInitialData(fetchedProduct[0]);
+          setInitialData({
+            ...fetchedProduct[0],
+            category: fetchedProduct[0].category ? { _ref: fetchedProduct[0].category, _type: "reference" } : undefined,
+          });
           setFormData({
             productName: fetchedProduct[0].productName || "",
-            category: fetchedProduct[0].category?._ref || "",
+            category: fetchedProduct[0].category || "",
             price: fetchedProduct[0].price || 0,
             inventory: fetchedProduct[0].inventory || 0,
             colors: fetchedProduct[0].colors || [],
             status: fetchedProduct[0].status || "",
-            image: fetchedProduct[0].image || "",
+            image: fetchedProduct[0].image && fetchedProduct[0].image.asset ? { _type: "image", asset: { _type: "reference", _ref: fetchedProduct[0].image.asset._ref } } : "",
             description: fetchedProduct[0].description || "",
           });
         } else {

@@ -1,64 +1,89 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useRef } from "react"
-import { getProductByName } from "@/sanity/products/getProductByName"
-import type { Product } from "../../sanity.types"
-import Image from "next/image"
-import { urlFor } from "@/sanity/lib/image"
-import { Skeleton } from "@/components/ui/skeleton"
-import { motion, AnimatePresence } from "framer-motion"
-import { X, ShoppingCart, Package, DollarSign } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState, useRef } from "react";
+import { getProductByName } from "@/sanity/products/getProductByName";
+import Image from "next/image";
+import { urlFor } from "@/sanity/lib/image";
+import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ShoppingCart, Package, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+// import { Product } from "../../sanity.types"
 
 interface SingleProductProps {
-  productName: string
-  onClose: () => void
+  productName: string;
+  onClose: () => void;
 }
 
-const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) => {
-  const [product, setProduct] = useState<Product | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const sidebarRef = useRef<HTMLDivElement>(null)
+export interface Product {
+  _id: string;
+  _type: "product";
+  _createdAt: string;
+ _updatedAt: string;
+  _rev: string;
+  productName?: string;
+  category?:
+    | { _ref: string; _type: "reference"; _weak?: boolean }
+    | string
+    | null;
+  price?: number;
+  inventory?: number;
+  image?: string;
+  colors?: string[];
+  description?: string;
+  reviews?: { rating: number; comment: string }[];
+}
+
+const SingleProduct: React.FC<SingleProductProps> = ({
+  productName,
+  onClose,
+}) => {
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setTimeout(() => {
-      setMenuOpen(true)
-    }, 100)
-  }, [])
+      setMenuOpen(true);
+    }, 100);
+  }, []);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      setLoading(true)
-      const fetchedProduct = await getProductByName(productName)
+      setLoading(true);
+      const fetchedProduct = await getProductByName(productName);
 
-      console.log(fetchedProduct)
+      console.log(fetchedProduct);
       if (Array.isArray(fetchedProduct) && fetchedProduct.length > 0) {
-        setProduct(fetchedProduct[0])
+        setProduct(fetchedProduct[0] as Product);
       } else {
-        setProduct(null)
+        setProduct(null);
       }
-      setLoading(false)
-    }
-    fetchProduct()
-  }, [productName])
+      setLoading(false);
+    };
+    fetchProduct();
+  }, [productName]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-        handleClose()
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        handleClose();
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
+    };
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [sidebarRef])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [sidebarRef]);
 
   const handleClose = () => {
-    setMenuOpen(false)
-    setTimeout(onClose, 300)
-  }
+    setMenuOpen(false);
+    setTimeout(onClose, 300);
+  };
 
   return (
     <AnimatePresence>
@@ -79,7 +104,9 @@ const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) =
           >
             <div className="p-6 flex flex-col h-full">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Product Details</h2>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                  Product Details
+                </h2>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -113,8 +140,12 @@ const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) =
                       className="transition-all duration-300 hover:scale-105"
                     />
                   </div>
-                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">{product.productName}</h1>
-                  <p className="text-gray-600 dark:text-gray-300">{product.description}</p>
+                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                    {product.productName}
+                  </h1>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {product.description}
+                  </p>
                   <div className="flex items-center gap-4">
                     <h3 className="text-xl font-bold">Colors:</h3>
                     <div className="flex items-center gap-2">
@@ -129,7 +160,9 @@ const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) =
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center text-green-600 dark:text-green-400">
-                      <span className="text-2xl font-bold">Rs {product.price}</span>
+                      <span className="text-2xl font-bold">
+                        Rs {product.price}
+                      </span>
                     </div>
                     <div className="flex items-center text-zinc-600 dark:text-zinc-400">
                       <Package className="h-5 w-5 mr-1" />
@@ -137,13 +170,21 @@ const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) =
                     </div>
                   </div>
                   <div className="bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-md">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Category:</span>{" "}
-                    <span className="text-sm text-gray-800 dark:text-white">{typeof product.category === 'string' ? product.category : 'Unknown Category'}</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                      Category:
+                    </span>{" "}
+                    <span className="text-sm text-gray-800 dark:text-white">
+                      {typeof product.category === "string"
+                        ? product.category
+                        : "Unknown Category"}
+                    </span>
                   </div>
                 </div>
               ) : (
                 <div className="flex-grow flex items-center justify-center">
-                  <p className="text-xl text-gray-600 dark:text-gray-400">Product not found</p>
+                  <p className="text-xl text-gray-600 dark:text-gray-400">
+                    Product not found
+                  </p>
                 </div>
               )}
             </div>
@@ -151,8 +192,7 @@ const SingleProduct: React.FC<SingleProductProps> = ({ productName, onClose }) =
         </motion.div>
       )}
     </AnimatePresence>
-  )
-}
+  );
+};
 
-export default SingleProduct
-
+export default SingleProduct;

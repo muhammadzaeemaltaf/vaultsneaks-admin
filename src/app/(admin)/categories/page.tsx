@@ -161,9 +161,6 @@ export default function CategoriesPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-64"
           />
-          <Button variant="outline" size="icon">
-            <Search className="h-4 w-4" />
-          </Button>
           <Button variant="outline" size="icon" onClick={handleRefreshClick}>
             <RefreshCw className={loading ? "animate-spin" : ""} />
           </Button>

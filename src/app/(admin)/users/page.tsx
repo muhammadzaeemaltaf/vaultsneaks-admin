@@ -61,16 +61,46 @@ export default function UserTable() {
     fetchUsers();
   }, []);
 
-  const handleStatusChange = async (userId: string, newStatus: boolean) => {
-    setUpdatingStatus(userId);
+  const handleStatusChange = async (user: User, newStatus: boolean) => {
+    setUpdatingStatus(user._id);
     try {
-      await client.patch(userId).set({ isActive: newStatus }).commit();
+      await client.patch(user._id).set({ 
+        isActive: newStatus, 
+        unactiveByAdmin: !newStatus 
+      }).commit();
       setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user._id === userId ? { ...user, isActive: newStatus } : user
+        prevUsers.map((u) =>
+          u._id === user._id ? { ...u, isActive: newStatus } : u
         )
       );
       toast.success("User status updated successfully");
+      
+      if (newStatus) { // Activation email when account is activated
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: user.email,
+            subject: "Account Activation Notice",
+            userId: user._id,
+            isActivationSuccess: true,
+            fullName: user.firstName + " " + user.lastName,
+          }),
+        });
+      } else { // Deactivation email when account is deactivated
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: user.email,
+            subject: "Account Deactivation Notice",
+            text: "Your account has been deactivated by admin.",
+            userId: user._id,
+            isActivationSuccess: false,
+            fullName: user.firstName + " " + user.lastName,
+          }),
+        });
+      }
     } catch (error) {
       console.error("Error updating user status:", error);
       toast.error("Failed to update user status");
@@ -285,7 +315,9 @@ export default function UserTable() {
                       ) : (
                         <Select
                           value={user.isActive ? "active" : "inactive"}
-                          onValueChange={(value) => handleStatusChange(user._id, value === "active")}
+                          onValueChange={(value) =>
+                            handleStatusChange(user, value === "active")
+                          }
                         >
                           <SelectTrigger className={`form-select ${user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                             <SelectValue placeholder={user.isActive ? "Active" : "Inactive"} />

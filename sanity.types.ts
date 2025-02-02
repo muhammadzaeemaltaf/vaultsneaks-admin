@@ -623,19 +623,50 @@ export type PRODUCT_REVIEW_BY_IDResult = Array<{
   }>;
 }>;
 // Variable: ALL_REVIEWS_QUERY
-// Query: *[_type == "review"]
+// Query: *[_type == "review"]{        ...,        product->{          ...        }      }
 export type ALL_REVIEWS_QUERYResult = Array<{
   _id: string;
   _type: "review";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  product?: {
-    _ref: string;
-    _type: "reference";
-    _weak?: boolean;
-    [internalGroqTypeReferenceTo]?: "product";
-  };
+  product: {
+    _id: string;
+    _type: "product";
+    _createdAt: string;
+    _updatedAt: string;
+    _rev: string;
+    productName?: string;
+    category?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "category";
+    };
+    price?: number;
+    inventory?: number;
+    colors?: Array<string>;
+    status?: string;
+    image?: {
+      asset?: {
+        _ref: string;
+        _type: "reference";
+        _weak?: boolean;
+        [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+      };
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    };
+    description?: string;
+    reviews?: Array<{
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      _key: string;
+      [internalGroqTypeReferenceTo]?: "review";
+    }>;
+  } | null;
   productId?: string;
   reviewId?: string;
   reviewerName?: string;
@@ -699,7 +730,7 @@ declare module "@sanity/client" {
     "\n       *[_type == \"product\" && category == $category && _id != $excludeProductId]\n\n  ": RELATED_PRODUCT_BY_CATEGORY_QUERYResult;
     "*[_type==\"product\" && category match \"Women*\"] | order(name asc)": WOMEN_PRODUCTS_QUERYResult;
     "\n      *[_type == \"review\" && references(^._id) && references(^._id)] ": PRODUCT_REVIEW_BY_IDResult;
-    "\n      *[_type == \"review\"]\n    ": ALL_REVIEWS_QUERYResult;
+    "\n      *[_type == \"review\"]{\n        ...,\n        product->{\n          ...\n        }\n      }\n      ": ALL_REVIEWS_QUERYResult;
     "\n    *[_type == \"user\"]\n  ": ALL_USERS_QUERYResult;
   }
 }

@@ -104,6 +104,30 @@ export default function OrderPage() {
         )
       );
       toast.success("Order status updated successfully");
+
+      // Find the updated order to send email
+      const currentOrder = orders.find((order) => order._id === orderId);
+      if (currentOrder) {
+          // Generate products details HTML with product image
+          const productsDetails = currentOrder.products?.length
+            ? currentOrder.products.map((product: any) => `
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                  <span>${product.product.productName} x ${product.quantity}</span>
+                </div>
+              `).join("")
+            : "<p>No products details available.</p>";
+          await fetch('/api/send-email', {
+              method: 'POST',
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                to: currentOrder.email,
+                subject: "Your Order Status Has Been Updated",
+                orderStatus: newStatus,
+                orderNumber: currentOrder.orderNumber,
+                productsDetails
+              })
+          });
+      }
     } catch (error) {
       console.error("Error updating order status:", error);
       toast.error("Failed to update order status");

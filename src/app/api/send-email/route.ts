@@ -101,7 +101,6 @@ async function sendAccountStatusEmail({
         <p style="color: #555; font-size: 16px;">Welcome to VaultSneak!</p>
         <h2 style="color: #333;">Account Deactivation!</h2>
         <p style="color: #555; font-size: 16px;">Dear ${fullName}, ${text}</p>
-        <p style="color: #555; font-size: 16px;">Dear ${fullName}, ${text}</p>
         <p style="color: #555; font-size: 12px;">Contact us for more information.</p>
         <p style="text-align: center; font-size: 12px; color: #888; margin-top: 20px;">
           &copy; ${new Date().getFullYear()} VaultSneak. All rights reserved.

@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, MoreHorizontal, Edit, Trash, RefreshCw } from "lucide-react";
+import { Search, MoreHorizontal, Edit, Trash, RefreshCw, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState, useRef } from "react";
@@ -14,6 +14,10 @@ import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton componen
 import { client } from "@/sanity/lib/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import ShadCN Select components
 import { toast, ToastContainer } from "react-toastify"; // Import toast
+import { downloadOrders } from "@/lib/downloadOrder"; // Import downloadOrders
+import { LuFileJson2 } from "react-icons/lu";
+import { RiFileExcel2Line } from "react-icons/ri";
+import { BsFiletypeCsv, BsFiletypePdf } from "react-icons/bs";
 
 const statusColors = {
     pending: "!bg-yellow-100 text-yellow-800",
@@ -153,7 +157,8 @@ export default function OrderPage() {
   return (
     <div className="container mx-auto py-10 px-4">
       <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between w-full space-x-2">
+          <div className="flex items-center gap-4">
           <Input
             placeholder="Search orders..."
             value={searchTerm}
@@ -163,6 +168,29 @@ export default function OrderPage() {
           <Button variant="outline" size="icon" onClick={refreshOrders}>
             <RefreshCw className={loading ? "animate-spin" : ""} />
           </Button>
+          </div>
+            {/* New Download Dropdown for orders */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => downloadOrders("json")}>
+               <LuFileJson2 /> JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadOrders("xlsx")}>
+               <RiFileExcel2Line /> Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadOrders("csv")}>
+               <BsFiletypeCsv /> CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadOrders("pdf")}>
+               <BsFiletypePdf /> PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div className="bg-white overflow-hidden">
@@ -170,6 +198,7 @@ export default function OrderPage() {
           <Table className="text-theme">
             <TableHeader>
               <TableRow>
+                <TableHead>Index</TableHead> {/* New index header */}
                 <TableHead>Order Number</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Order Date</TableHead>
@@ -183,6 +212,7 @@ export default function OrderPage() {
             <TableBody>
               {Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={index}>
+                  <TableCell><Skeleton className="h-6 w-12" /> {/* New index cell */}</TableCell>
                   <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-24" /></TableCell>
@@ -199,6 +229,7 @@ export default function OrderPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Index</TableHead> {/* New index header */}
                 <TableHead>Order Number</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Order Date</TableHead>
@@ -210,10 +241,11 @@ export default function OrderPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredOrders.map((order) => (
+              {filteredOrders.map((order, index) => (
                 <TableRow key={order._id} onClick={(e) => handleRowClick(e, order.orderNumber ?? "")} className="cursor-pointer">
                   {deletingOrder === order._id ? (
                     <>
+                      <TableCell><Skeleton className="h-6 w-12" /> {/* New index cell */}</TableCell>
                       <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-24" /></TableCell>
@@ -225,6 +257,7 @@ export default function OrderPage() {
                     </>
                   ) : (
                     <>
+                      <TableCell>{index + 1}</TableCell> {/* New index cell */}
                       <TableCell className="font-medium">{highlightText(order.orderNumber ?? "", searchTerm)}</TableCell>
                       <TableCell>
                         <div>{highlightText(order.customerName ?? "", searchTerm)}</div>

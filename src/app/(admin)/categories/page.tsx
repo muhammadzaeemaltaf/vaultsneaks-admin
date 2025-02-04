@@ -24,6 +24,7 @@ import {
   Edit,
   Trash,
   RefreshCw,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 import { getAllCategories } from "@/sanity/category/getAllCategories";
@@ -40,6 +41,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { downloadCategories } from "@/lib/downloadCategories";
+import { LuFileJson2 } from "react-icons/lu";
+import { RiFileExcel2Line } from "react-icons/ri";
+import { BsFiletypeCsv, BsFiletypePdf } from "react-icons/bs";
 
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -146,9 +151,11 @@ export default function CategoriesPage() {
       return text;
     }
     const regex = new RegExp(`(${highlight})`, "gi");
-    return text.split(regex).map((part, index) =>
-      regex.test(part) ? <mark key={index}>{part}</mark> : part
-    );
+    return text
+      .split(regex)
+      .map((part, index) =>
+        regex.test(part) ? <mark key={index}>{part}</mark> : part
+      );
   };
 
   return (
@@ -165,10 +172,33 @@ export default function CategoriesPage() {
             <RefreshCw className={loading ? "animate-spin" : ""} />
           </Button>
         </div>
-        <Button className="relative">
-          <Link href="categories/add" className="absolute inset-0" />
-          <Plus className="mr-2 h-4 w-4" /> Add Category
-        </Button>
+        <div className="flex gap-4">
+          <Button className="relative">
+            <Link href="categories/add" className="absolute inset-0" />
+            <Plus className="mr-2 h-4 w-4" /> Add Category
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => downloadCategories("json")}>
+               <LuFileJson2 /> JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadCategories("xlsx")}>
+               <RiFileExcel2Line /> Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadCategories("csv")}>
+               <BsFiletypeCsv /> CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadCategories("pdf")}>
+               <BsFiletypePdf /> PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       <div className="overflow-hidden">
         {loading ? (

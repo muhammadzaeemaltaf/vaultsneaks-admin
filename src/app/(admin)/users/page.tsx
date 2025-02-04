@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronDown, ChevronUp, Eye, EyeOff, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, EyeOff, RefreshCw, Download } from "lucide-react";
 import { getAllUsers } from "@/sanity/user/getAllUsers";
 import { client } from "@/sanity/lib/client";
 import { toast, ToastContainer } from "react-toastify";
@@ -26,6 +26,11 @@ import { urlFor } from "@/sanity/lib/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { downloadUsers } from "@/lib/downloadUsers";
+import { LuFileJson2 } from "react-icons/lu";
+import { RiFileExcel2Line } from "react-icons/ri";
+import { BsFiletypeCsv, BsFiletypePdf } from "react-icons/bs";
 
 const highlightText = (text: string, highlight: string) => {
   if (!highlight.trim()) {
@@ -162,6 +167,7 @@ export default function UserTable() {
         <Table className="text-theme">
           <TableHeader>
             <TableRow>
+              <TableHead>Index</TableHead> {/* New Index header */}
               <TableHead>Profile Image</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
@@ -176,6 +182,9 @@ export default function UserTable() {
           <TableBody>
             {Array.from({ length: 5 }).map((_, index) => (
               <TableRow key={index}>
+                <TableCell>
+                  <Skeleton className="h-6 w-12" /> {/* New Index cell */}
+                </TableCell>
                 <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-6 w-32" /></TableCell>
@@ -191,8 +200,9 @@ export default function UserTable() {
         </Table>
       ) : (
         <>
-          <div className="flex gap-4 flex-wrap">
-            <Input
+          <div className="flex gap-4  justify-between flex-wrap">
+          <div className="flex gap-4">
+          <Input
               type="text"
               placeholder="Search by name"
               value={searchTerm}
@@ -230,10 +240,34 @@ export default function UserTable() {
             <Button variant="outline" size="icon" onClick={refreshUsers}>
               <RefreshCw className={loading ? "animate-spin" : ""} />
             </Button>
+            </div>
+            {/* New Download Dropdown for users */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Download />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => downloadUsers("json")}>
+                 <LuFileJson2 /> JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadUsers("xlsx")}>
+                 <RiFileExcel2Line /> Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadUsers("csv")}>
+                 <BsFiletypeCsv /> CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => downloadUsers("pdf")}>
+                 <BsFiletypePdf /> PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <Table className="text-theme">
             <TableHeader>
               <TableRow>
+                <TableHead>Index</TableHead> {/* New Index header */}
                 <TableHead>Profile Image</TableHead>
                 <TableHead
                   onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
@@ -257,13 +291,14 @@ export default function UserTable() {
             <TableBody>
               {filteredAndSortedUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">
+                  <TableCell colSpan={10} className="text-center">
                     No users found.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredAndSortedUsers.map((user) => (
+                filteredAndSortedUsers.map((user, index) => (
                   <TableRow key={user._id}>
+                    <TableCell>{index + 1}</TableCell> {/* New Index cell */}
                     <TableCell>
                       {!user.profilePicture ? (
                         <Avatar>

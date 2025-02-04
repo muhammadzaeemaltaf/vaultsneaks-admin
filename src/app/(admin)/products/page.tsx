@@ -43,7 +43,7 @@ import { client } from "@/sanity/lib/client";
 import { toast, ToastContainer } from "react-toastify";
 import { updateProduct } from "@/sanity/products/updateProduct";
 import { set } from "sanity";
-import { downloadProducts } from "@/lib/download";
+import { downloadProducts } from "@/lib/downloadProducts";
 import { urlFor } from "@/sanity/lib/image";
 import Image from "next/image";
 
@@ -255,7 +255,7 @@ export default function ProductsPage() {
           {/* Download dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button>
+              <Button variant={"outline"}>
                 <Download />
               </Button>
             </DropdownMenuTrigger>
@@ -281,6 +281,9 @@ export default function ProductsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>
+                  <Skeleton className="h-6 w-12" /> {/* New Index header */}
+                </TableHead>
                 <TableHead>
                   <Skeleton className="h-6 w-24" />
                 </TableHead>
@@ -308,7 +311,7 @@ export default function ProductsPage() {
               {[...Array(10)].map((_, index) => (
                 <TableRow key={index}>
                   <TableCell>
-                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-full" /> {/* New Index cell */}
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-6 w-full" />
@@ -323,6 +326,9 @@ export default function ProductsPage() {
                     <Skeleton className="h-6 w-full" />
                   </TableCell>
                   <TableCell>
+                    <Skeleton className="h-6 w-full" />
+                  </TableCell>
+                  <TableCell >
                     <Skeleton className="h-6 w-full" />
                   </TableCell>
                   <TableCell className="text-right">
@@ -336,6 +342,7 @@ export default function ProductsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Index</TableHead> {/* New Index header */}
                 <TableHead>Image</TableHead>
                 <TableHead onClick={() => requestSort("productName")}>
                   <span className="flex items-center gap-3">
@@ -377,12 +384,13 @@ export default function ProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedProducts.map((product) => (
+              {sortedProducts.map((product, index) => (
                 <TableRow
                   key={product._id}
                   onClick={(e) => handleRowClick(e, product.productName ?? "")}
                   className="cursor-pointer"
                 >
+                  <TableCell>{index + 1}</TableCell> {/* New Index cell */}
                   {deletingProductId === product._id ? (
                     <>
                       <TableCell>

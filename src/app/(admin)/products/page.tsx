@@ -46,6 +46,8 @@ import { set } from "sanity";
 import { downloadProducts } from "@/lib/downloadProducts";
 import { urlFor } from "@/sanity/lib/image";
 import Image from "next/image";
+import { Checkbox } from "@/components/ui/checkbox"; 
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,6 +63,8 @@ export default function ProductsPage() {
   const [deletingProductId, setDeletingProductId] = useState<string | null>(
     null
   ); // Add state for deleting product ID
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false); // Add bulk deleting state
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -68,7 +72,9 @@ export default function ProductsPage() {
       setTimeout(async () => {
         const products = await getAllProducts();
         setProducts(products);
-        setLoading(false); // Set loading to false after products are fetched
+        // Remove auto-check of all checkboxes; start with none checked
+        setSelectedProductIds([]);
+        setLoading(false);
       }, 3000);
     };
     fetchProducts();
@@ -78,7 +84,8 @@ export default function ProductsPage() {
     setLoading(true);
     const products = await getAllProducts();
     setProducts(products);
-    console.log(products);
+    // Ensure new products are not auto-selected
+    setSelectedProductIds([]);
     setLoading(false);
   };
 
@@ -125,13 +132,16 @@ export default function ProductsPage() {
       );
   };
 
-  const handleRowClick = (event: React.MouseEvent, productName: string) => {
-    if (
-      (event.target as HTMLElement).closest("button") ||
-      (event.target as HTMLElement).closest(".dropdown-menu")
-    )
+  const handleRowClick = (event: React.MouseEvent, productId: string) => {
+    const targetElement = event.target as HTMLElement;
+  
+    // Prevent row selection when clicking on checkboxes
+    if (targetElement.closest("input[type='checkbox']")) return;
+  
+    if (targetElement.closest("button") || targetElement.closest(".dropdown-menu"))
       return;
-    setSelectedProduct(productName);
+  
+    setSelectedProduct(productId);
   };
 
   const handleDeleteConfirm = async (productId: string) => {
@@ -175,6 +185,44 @@ export default function ProductsPage() {
     setSelectedProduct(null);
   };
 
+  // Toggle single product selection
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProductIds((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  // Toggle select all
+  const toggleSelectAll = (e:any) => {
+    if (selectedProductIds.length === products.length) {
+      setSelectedProductIds([]);
+    } else {
+      setSelectedProductIds(products.map((p) => p._id));
+    }
+  };
+
+  // Bulk delete function
+  const handleBulkDelete = async () => {
+    if (!selectedProductIds.length) return;
+    setBulkDeleting(true); // Set bulk deleting to true
+    try {
+      await Promise.all(selectedProductIds.map((id) => client.delete(id)));
+      const updatedProducts = products.filter(
+        (product) => !selectedProductIds.includes(product._id)
+      );
+      setProducts(updatedProducts);
+      setSelectedProductIds([]);
+      toast.success("Selected products deleted successfully!");
+    } catch (error) {
+      console.error("Error in bulk delete:", error);
+      toast.error("Failed to delete selected products.");
+    } finally {
+      setBulkDeleting(false); // Set bulk deleting to false
+    }
+  };
+
   return (
     <div className="container mx-auto py-10 px-4">
       <div className="flex justify-between items-center mb-6">
@@ -188,6 +236,22 @@ export default function ProductsPage() {
           <Button variant="outline" size="icon" onClick={refreshProducts}>
             <RefreshCw className={loading ? "animate-spin" : ""} />
           </Button>
+          {/* Bulk Delete Button */}
+          {selectedProductIds.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleting} // Disable button when bulk deleting
+            >
+              {bulkDeleting ? (
+                <span className="flex items-center gap-3">
+                  <LoadingSpinner /> <span>Deleting...</span>
+                </span>
+              ) : (
+                "Delete Selected"
+              )}
+            </Button>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           <DropdownMenu>
@@ -282,6 +346,9 @@ export default function ProductsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>
+                  <Skeleton className="h-6 w-12" /> {/* New checkbox header */}
+                </TableHead>
+                <TableHead>
                   <Skeleton className="h-6 w-12" /> {/* New Index header */}
                 </TableHead>
                 <TableHead>
@@ -314,7 +381,7 @@ export default function ProductsPage() {
                     <Skeleton className="h-6 w-full" /> {/* New Index cell */}
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-full" /> {/* New Index cell */}
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-6 w-full" />
@@ -328,7 +395,10 @@ export default function ProductsPage() {
                   <TableCell>
                     <Skeleton className="h-6 w-full" />
                   </TableCell>
-                  <TableCell >
+                  <TableCell>
+                    <Skeleton className="h-6 w-full" />
+                  </TableCell>
+                  <TableCell>
                     <Skeleton className="h-6 w-full" />
                   </TableCell>
                   <TableCell className="text-right">
@@ -342,6 +412,13 @@ export default function ProductsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>
+                  <Checkbox
+                    // Toggle all selection
+                    checked={selectedProductIds.length === products.length}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Index</TableHead> {/* New Index header */}
                 <TableHead>Image</TableHead>
                 <TableHead onClick={() => requestSort("productName")}>
@@ -390,6 +467,15 @@ export default function ProductsPage() {
                   onClick={(e) => handleRowClick(e, product.productName ?? "")}
                   className="cursor-pointer"
                 >
+                  {/* Remove onClick from the surrounding TableCell */}
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedProductIds.includes(product._id)}
+                      onCheckedChange={(e) => {
+                        toggleProductSelection(product._id);
+                      }}
+                    />
+                  </TableCell>
                   <TableCell>{index + 1}</TableCell> {/* New Index cell */}
                   {deletingProductId === product._id ? (
                     <>
@@ -449,6 +535,7 @@ export default function ProductsPage() {
                       <TableCell>{product.inventory}</TableCell>
                       <TableCell>
                         <Badge
+                        className="whitespace-nowrap"
                           variant={
                             product.status === "In Stock"
                               ? "default"

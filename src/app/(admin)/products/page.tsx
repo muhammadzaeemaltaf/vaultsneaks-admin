@@ -224,14 +224,14 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-2">
+    <div className="container mx-auto py-10 px-2 lg:px-4 w-full">
+      <div className="flex justify-between flex-col md:flex-row md:flex-wrap gap-4 items-center mb-6">
+        <div className="flex items-center justify-start gap-4 w-full md:w-auto">
           <Input
             placeholder="Search products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-64"
+            className="sm:w-64"
           />
           <Button variant="outline" size="icon" onClick={refreshProducts}>
             <RefreshCw className={loading ? "animate-spin" : ""} />
@@ -253,7 +253,7 @@ export default function ProductsPage() {
             </Button>
           )}
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-end gap-4 w-full md:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -295,7 +295,7 @@ export default function ProductsPage() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Product
+                <Plus className="sm:mr-2 h-4 w-4" /> <span className="hidden sm:block">Add Product</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -340,37 +340,37 @@ export default function ProductsPage() {
           </DropdownMenu>
         </div>
       </div>
-      <div className="bg-white overflow-hidden">
+      <div className="bg-white overflow-auto w-[95vw] md:w-auto"> {/* Changed w-100 to w-full */}
         {loading ? (
-          <Table>
+          <Table> {/* Added min-w-full */}
             <TableHeader>
               <TableRow>
                 <TableHead>
-                  <Skeleton className="h-6 w-12" /> {/* New checkbox header */}
+                  <Skeleton className="h-6 w-4 lg:w-12" />
                 </TableHead>
                 <TableHead>
-                  <Skeleton className="h-6 w-12" /> {/* New Index header */}
+                  <Skeleton className="h-6 w-4 lg:w-12" />
                 </TableHead>
                 <TableHead>
-                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-4 lg:w-24" />
                 </TableHead>
                 <TableHead>
-                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-4 lg:w-24" />
                 </TableHead>
                 <TableHead>
-                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-4 lg:w-24" />
                 </TableHead>
                 <TableHead>
-                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-4 lg:w-24" />
                 </TableHead>
                 <TableHead>
-                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-4 lg:w-24" />
                 </TableHead>
                 <TableHead>
-                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-4 lg:w-24" />
                 </TableHead>
                 <TableHead className="text-right">
-                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-4 lg:w-24" />
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -378,10 +378,10 @@ export default function ProductsPage() {
               {[...Array(10)].map((_, index) => (
                 <TableRow key={index}>
                   <TableCell>
-                    <Skeleton className="h-6 w-full" /> {/* New Index cell */}
+                    <Skeleton className="h-6 w-full" /> 
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-6 w-full" /> {/* New Index cell */}
+                    <Skeleton className="h-6 w-full" /> 
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-6 w-full" />
@@ -409,7 +409,7 @@ export default function ProductsPage() {
             </TableBody>
           </Table>
         ) : (
-          <Table>
+          <Table> {/* Added min-w-full */}
             <TableHeader>
               <TableRow>
                 <TableHead>
@@ -419,7 +419,7 @@ export default function ProductsPage() {
                     onCheckedChange={toggleSelectAll}
                   />
                 </TableHead>
-                <TableHead>Index</TableHead> {/* New Index header */}
+                <TableHead>Index</TableHead> 
                 <TableHead>Image</TableHead>
                 <TableHead onClick={() => requestSort("productName")}>
                   <span className="flex items-center gap-3">
@@ -467,7 +467,6 @@ export default function ProductsPage() {
                   onClick={(e) => handleRowClick(e, product.productName ?? "")}
                   className="cursor-pointer"
                 >
-                  {/* Remove onClick from the surrounding TableCell */}
                   <TableCell>
                     <Checkbox
                       checked={selectedProductIds.includes(product._id)}
@@ -476,7 +475,7 @@ export default function ProductsPage() {
                       }}
                     />
                   </TableCell>
-                  <TableCell>{index + 1}</TableCell> {/* New Index cell */}
+                  <TableCell>{index + 1}</TableCell>
                   {deletingProductId === product._id ? (
                     <>
                       <TableCell>
@@ -509,10 +508,10 @@ export default function ProductsPage() {
                           width={100}
                         />
                       </TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium text-xs">
                         {highlightText(product.productName ?? "", searchTerm)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-xs">
                         {highlightText(
                           typeof product.category === "string"
                             ? product.category
@@ -531,11 +530,11 @@ export default function ProductsPage() {
                           ))}
                         </div>
                       </TableCell>
-                      <TableCell>Rs {product.price}</TableCell>
-                      <TableCell>{product.inventory}</TableCell>
+                      <TableCell className="whitespace-nowrap text-xs">Rs {product.price}</TableCell>
+                      <TableCell className="text-xs">{product.inventory}</TableCell>
                       <TableCell>
                         <Badge
-                        className="whitespace-nowrap"
+                        className="whitespace-nowrap text-xs"
                           variant={
                             product.status === "In Stock"
                               ? "default"

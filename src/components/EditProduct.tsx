@@ -6,19 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Plus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Plus, Eye, X } from "lucide-react"; // Added Eye and X icons
 import { getAllCategories } from "@/sanity/category/getAllCategories";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -76,6 +66,8 @@ export default function Edit() {
   const name = searchParams.get("name");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingProduct, setLoadingProduct] = useState(true);
+  // New state for mobile preview offcanvas
+  const [showPreview, setShowPreview] = useState(false);
 
   // Helper function for image rendering
   const renderImage = () => {
@@ -112,6 +104,8 @@ export default function Edit() {
     if (name) {
       const fetchProduct = async () => {
         const fetchedProduct = await getProductByName(decodeURIComponent(name));
+       
+
         if (Array.isArray(fetchedProduct) && fetchedProduct.length > 0) {
           setInitialData({
             ...fetchedProduct[0],
@@ -189,6 +183,7 @@ export default function Edit() {
           ? { _type: "reference", _ref: formData.category } as const // Use 'as const' to ensure `_type` is literal
           : formData.category;
   
+
       // Ensure image is handled properly
       const image =
         typeof formData.image === "string" && formData.image.startsWith("data:")
@@ -233,8 +228,8 @@ export default function Edit() {
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <div className="container mx-auto px-6">
-        <div className={`grid grid-cols-[30%_auto] gap-8`}>
+      <div className="container mx-auto px-6 relative">
+        <div className="grid md:grid-cols-[30%_auto] gap-8">
           {/* Form Section */}
           <form onSubmit={handleSubmit} className="space-y-6 py-6">
             <div className="space-y-4">
@@ -269,21 +264,36 @@ export default function Edit() {
                     {loadingCategories ? (
                       <Skeleton className="h-10 w-full" />
                     ) : (
-                      <Select
-                        value={typeof formData.category === 'string' ? formData.category : formData.category._ref}
-                        onValueChange={(value) => setFormData({ ...formData, category: { _type: "reference", _ref: value } })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category._id} value={category._id}>
-                              {category.categoryName || 'Unknown Category'}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      (() => {
+                        const selectedCategory =
+                          typeof formData.category === "string" && formData.category
+                            ? (categories.find(cat => cat.categoryName === formData.category)?._id || "")
+                            : typeof formData.category === "object"
+                              ? formData.category._ref
+                              : "";
+                        return (
+                          <Select
+                            value={selectedCategory}
+                            onValueChange={(value) =>
+                              setFormData({
+                                ...formData,
+                                category: { _type: "reference", _ref: value }
+                              })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <SelectItem key={category._id} value={category._id}>
+                                  {category.categoryName || "Unknown Category"}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        );
+                      })()
                     )}
                   </div>
 
@@ -439,9 +449,9 @@ export default function Edit() {
             </Button>
           </form>
 
-          {/* Preview Section */}
-          <div className="border-l p-6 space-y-6 flex items-start flex-col lg:flex-row gap-10">
-            <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden w-72">
+          {/* Desktop Preview Section - hidden on mobile */}
+          <div className="hidden md:flex border-l p-6 space-y-6 flex-col lg:flex-row gap-10">
+            <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden w-72 h-fit">
               {typeof formData.image === "string" && formData.image ? (
                 <Image
                   src={
@@ -516,10 +526,108 @@ export default function Edit() {
             </div>
           </div>
         </div>
-        <div
-          className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize"
-        />
+        
+        {/* Mobile Preview Offcanvas Sidebar */}
+        {showPreview && (
+          <div className="fixed inset-0 z-50 flex">
+            <div className="fixed inset-0 bg-black opacity-50" onClick={() => setShowPreview(false)}></div>
+            <div className="relative ml-auto bg-white w-10/12 max-w-md h-full shadow-xl overflow-auto">
+              <div className="p-4 flex items-center justify-between border-b">
+                <h2 className="text-lg font-semibold">Product Preview</h2>
+                <button onClick={() => setShowPreview(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6 space-y-6">
+                <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden w-64 h-fit">
+                  {typeof formData.image === "string" && formData.image ? (
+                    <Image
+                      src={
+                        formData.image.startsWith("data:")
+                          ? formData.image
+                          : urlFor(formData.image).url()
+                      }
+                      alt={formData.productName}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      No image uploaded
+                    </div>
+                  )}
+                  {typeof formData.image === "object" && formData.image && (
+                    <Image
+                      src={urlFor(formData.image).url()}
+                      alt={formData.productName}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                </div>
 
+                <div className="space-y-4 overflow-hidden w-full lg:w-1/2 ">
+                  <h1 className="text-3xl font-bold whitespace-pre-wrap overflow-hidden">
+                    {formData.productName || "Product Name"}
+                  </h1>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Category:</span>
+                    <span className="text-sm font-medium">
+                      {categories.find((cat) => 
+                        typeof formData.category === 'object' && cat._id === formData.category._ref
+                      )?.categoryName || "Not set"}
+                    </span>
+                  </div>
+
+                  {formData.colors.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">
+                        Available Colors:
+                      </span>
+                      <div className="flex gap-1">
+                        {formData.colors.map((color, index) => (
+                          <div
+                            key={index}
+                            className="w-6 h-6 rounded-full border border-gray-200"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <div className="text-2xl font-bold">
+                      Rs: {formData.price.toLocaleString()}
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600">
+                    {formData.description || "No description available"}
+                  </p>
+
+                  <div className="flex gap-4">
+                    <Button className="">Add To Cart</Button>
+                    <Button variant="outline">Compare</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Mobile Preview Toggle Button */}
+        <div className="md:hidden">
+          <button 
+            className="fixed bottom-4 right-4 bg-black text-white px-4 py-2 rounded-full shadow-md flex items-center gap-1"
+            onClick={() => setShowPreview(true)}
+          >
+            <Eye size={16} />
+            Preview
+          </button>
+        </div>
+        
         <ToastContainer />
       </div>
     </Suspense>

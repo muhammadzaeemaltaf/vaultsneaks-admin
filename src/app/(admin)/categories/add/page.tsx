@@ -42,7 +42,7 @@ const AddCategories = () => {
   };
 
   return (
-    <div>
+    <div className="px-3">
       <Card className="max-w-md mx-auto mt-10 shadow-md">
         <CardHeader>
           <CardTitle>New Category</CardTitle>

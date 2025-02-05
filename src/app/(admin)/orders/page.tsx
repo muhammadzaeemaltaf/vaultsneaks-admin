@@ -155,7 +155,7 @@ export default function OrderPage() {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4">
+    <div className="container mx-auto py-10 px-2 md:px-4">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center justify-between w-full space-x-2">
           <div className="flex items-center gap-4">
@@ -163,7 +163,7 @@ export default function OrderPage() {
             placeholder="Search orders..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-64"
+            className="sm:w-64"
           />
           <Button variant="outline" size="icon" onClick={refreshOrders}>
             <RefreshCw className={loading ? "animate-spin" : ""} />
@@ -193,7 +193,7 @@ export default function OrderPage() {
           </DropdownMenu>
         </div>
       </div>
-      <div className="bg-white overflow-hidden">
+      <div className="bg-white overflow-auto w-[95vw] text-xs"> 
         {loading ? (
           <Table className="text-theme">
             <TableHeader>
@@ -232,7 +232,7 @@ export default function OrderPage() {
                 <TableHead>Index</TableHead> {/* New index header */}
                 <TableHead>Order Number</TableHead>
                 <TableHead>Customer</TableHead>
-                <TableHead>Order Date</TableHead>
+                <TableHead className="whitespace-nowrap">Order Date</TableHead>
                 <TableHead>Estimated Delievery Date</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
@@ -265,7 +265,7 @@ export default function OrderPage() {
                       </TableCell>
                       <TableCell>{order.orderDate ? new Date(order.orderDate).toDateString() : "N/A"}</TableCell>
                       <TableCell>{order.estimatedDeliveryDate ? new Date(order.estimatedDeliveryDate).toDateString() : "N/A"}</TableCell>
-                      <TableCell>{`${order.currency} ${order.totalPrice ?? 0}`}</TableCell>
+                      <TableCell className="whitespace-nowrap">{`${order.currency} ${order.totalPrice ?? 0}`}</TableCell>
                       <TableCell>
                         {updatingStatus === order._id ? (
                           <Skeleton className="h-8 w-20" />

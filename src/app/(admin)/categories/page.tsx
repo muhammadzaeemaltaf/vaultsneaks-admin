@@ -160,8 +160,8 @@ export default function CategoriesPage() {
 
   return (
     <div className="container mx-auto py-10 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-2">
+      <div className="flex justify-between flex-col md:flex-row items-center gap-4 mb-6">
+        <div className="flex items-center justify-start gap-2 w-full md:w-auto">
           <Input
             placeholder="Search categories..."
             value={searchTerm}
@@ -172,7 +172,7 @@ export default function CategoriesPage() {
             <RefreshCw className={loading ? "animate-spin" : ""} />
           </Button>
         </div>
-        <div className="flex gap-4">
+        <div className="flex justify-end gap-4 w-full md:w-auto">
           <Button className="relative">
             <Link href="categories/add" className="absolute inset-0" />
             <Plus className="mr-2 h-4 w-4" /> Add Category

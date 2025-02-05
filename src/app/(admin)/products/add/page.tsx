@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Plus } from "lucide-react"
+import { Plus, Eye, X } from "lucide-react"
 import { getAllCategories } from "@/sanity/category/getAllCategories"
 import { Category } from "../../../../../sanity.types"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -61,6 +61,7 @@ export default function ProductForm() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false) // New state for mobile offcanvas
   const router = useRouter();
 
   useEffect(() => {
@@ -150,8 +151,8 @@ export default function ProductForm() {
   };
 
   return (
-    <div className="container mx-auto px-6">
-      <div className={`grid grid-cols-[30%_auto] gap-8`}>
+    <div className="container mx-auto px-2 md:px-6 relative overflow-hidden">
+      <div className="grid md:grid-cols-[30%_auto] gap-8">
         {/* Form Section */}
         <form onSubmit={handleSubmit} className="space-y-6 py-6">
           <div className="space-y-4">
@@ -314,9 +315,9 @@ export default function ProductForm() {
           </Button>
         </form>
 
-        {/* Preview Section */}
-        <div className="border-l p-6 space-y-6 flex items-start flex-col lg:flex-row gap-10">
-          <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden w-72">
+        {/* Desktop Preview Section - hidden on mobile */}
+        <div className="hidden md:flex border-l p-6 space-y-6 flex-col lg:flex-row gap-10">
+          <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden w-72 h-fit">
             {formData.image ? (
               <Image
                 src={formData.image}
@@ -325,7 +326,7 @@ export default function ProductForm() {
                 className="object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">No image uploaded</div>
+              <div className="w-full aspect-square flex items-center justify-center text-gray-400">No image uploaded</div>
             )}
           </div>
 
@@ -365,12 +366,80 @@ export default function ProductForm() {
           </div>    
         </div>
       </div>
+      
+      {/* Mobile Preview Offcanvas Sidebar */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="fixed inset-0 bg-black opacity-50" onClick={() => setShowPreview(false)}></div>
+          <div className="relative ml-auto bg-white w-10/12 max-w-md h-full shadow-xl overflow-auto">
+            <div className="p-4 flex items-center justify-between border-b">
+              <h2 className="text-lg font-semibold">Product Preview</h2>
+              <button onClick={() => setShowPreview(false)}>
+                <X size={20}/>
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* Same preview content as desktop */}
+              <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden w-full">
+                {formData.image ? (
+                  <Image
+                    src={formData.image}
+                    alt={formData.productName}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">No image uploaded</div>
+                )}
+              </div>
+              <div className="space-y-4">
+                <h1 className="text-3xl font-bold">{formData.productName || "Product Name"}</h1>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Category:</span>
+                  <span className="text-sm font-medium">{categories.find(cat => cat._id === formData.category._ref)?.categoryName || "Not set"}</span>
+                </div>
+                {formData.colors.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Available Colors:</span>
+                    <div className="flex gap-1">
+                      {formData.colors.map((color, index) => (
+                        <div
+                          key={index}
+                          className="w-6 h-6 rounded-full border border-gray-200"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="text-2xl font-bold">Rs: {formData.price.toLocaleString()}</div>
+                <p className="text-gray-600">{formData.description || "No description available"}</p>
+                <div className="flex gap-4">
+                  <Button>Add To Cart</Button>
+                  <Button variant="outline">Compare</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Mobile Preview Toggle Button */}
+      <div className="md:hidden">
+        <button 
+          className="fixed bottom-4 right-4 bg-black text-white px-4 py-2 rounded-full shadow-md flex items-center gap-1"
+          onClick={() => setShowPreview(true)}
+        >
+          <Eye size={16} />
+          Preview
+        </button>
+      </div>
+      
+      <ToastContainer />
       <div
         className="absolute top-0 bottom-0 right-0 w-2 cursor-ew-resize"
         onMouseDown={handleMouseDown}
       />
-
-      <ToastContainer />
     </div>
   )
 }

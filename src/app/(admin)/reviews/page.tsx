@@ -92,9 +92,9 @@ export default function ReviewsPage() {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
-        <div className="flex items-center space-x-2">
+    <div className="container mx-auto py-10 px-2 sm:px-4 lg:px-8">
+      <div className="flex flex-col sm:flex-row justify-start items-start mb-6 space-y-4 sm:space-y-0">
+        <div className="flex  items-center space-x-2">
           <Input
             placeholder="Search reviews..."
             value={searchTerm}
@@ -106,13 +106,14 @@ export default function ReviewsPage() {
           </Button>
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto w-[95vw] md:w-auto">
         {loading ? (
           <Table className="text-theme">
             <TableHeader>
               <TableRow>
+              <TableHead>Image</TableHead>
+                <TableHead className="whitespace-nowrap">Product Name</TableHead>
                 <TableHead>Reviewer</TableHead>
-                <TableHead>Product ID</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Review</TableHead>
                 <TableHead>Date</TableHead>
@@ -123,6 +124,9 @@ export default function ReviewsPage() {
             <TableBody>
               {Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={index}>
+                  <TableCell>
+                    <Skeleton className="h-6 w-24" />
+                  </TableCell>
                   <TableCell>
                     <Skeleton className="h-6 w-24" />
                   </TableCell>
@@ -153,7 +157,7 @@ export default function ReviewsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Image</TableHead>
-                <TableHead>Product Name</TableHead>
+                <TableHead className="whitespace-nowrap">Product Name</TableHead>
                 <TableHead>Reviewer</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Review</TableHead>
@@ -212,7 +216,7 @@ export default function ReviewsPage() {
                         <TableCell className="max-w-xs truncate">
                           {highlightText(review.reviewText ?? "", searchTerm)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {review.reviewDate
                             ? format(new Date(review.reviewDate), "MMM d, yyyy")
                             : "N/A"}

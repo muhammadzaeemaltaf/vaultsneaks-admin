@@ -120,8 +120,8 @@ export function Overview() {
   const currentMonth = new Date().getMonth();
 
   return (
-    <div>
-      <div className="flex justify-end mb-4">
+    <div className="p-4">
+      <div className="flex justify-end mb-4 gap-2">
         <Select value={filter} onValueChange={(value: string) => setFilter(value)} >
           <SelectTrigger className="p-2 border rounded w-32">
             <span>{filter.charAt(0).toUpperCase() + filter.slice(1).toLowerCase()}</span>
@@ -135,8 +135,9 @@ export function Overview() {
         </Select>
       </div>
       {filter === "day" && (
-        <div className="flex justify-center items-center mb-4 gap-3">
-          <div className="text-center">Month</div>
+        <div className="flex flex-wrap justify-center items-center mb-4 gap-3">
+        <div>
+        <div className="text-center">Month</div>
           <Select value={selectedMonth.toString()} onValueChange={(value: string) => setSelectedMonth(parseInt(value))}>
             <SelectTrigger className="p-2 border rounded w-32">
               <span>{new Date(0, selectedMonth).toLocaleString('default', { month: 'long' })}</span>
@@ -150,10 +151,12 @@ export function Overview() {
             </SelectContent>
           </Select>
         </div>
+        </div>
       )}
       {filter === "month" && (
-        <div className="flex justify-center items-center mb-4 gap-3">
-          <div className="text-center">Year</div>
+        <div className="flex flex-wrap justify-start md:justify-center items-center mb-4 gap-3">
+        <div className="flex items-end gap-2">
+        <div className="text-center">Year</div>
           <Select value={selectedYear.toString()} onValueChange={(value: string) => setSelectedYear(parseInt(value))}>
             <SelectTrigger className="p-2 border rounded w-32">
               <span>{selectedYear}</span>
@@ -169,7 +172,9 @@ export function Overview() {
               })}
             </SelectContent>
           </Select>
-          <div className="text-center">Month</div>
+        </div>
+         <div className="flex items-center gap-2">
+         <div className="text-center">Month</div>
           <Select value={selectedMonthForMonth} onValueChange={(value: string) => setSelectedMonthForMonth(value)}>
             <SelectTrigger className="p-2 border rounded w-32">
               <span>{selectedMonthForMonth === "all" ? "All" : new Date(0, parseInt(selectedMonthForMonth)).toLocaleString('default', { month: 'long' })}</span>
@@ -186,10 +191,11 @@ export function Overview() {
               ))}
             </SelectContent>
           </Select>
+         </div>
         </div>
       )}
       {filter === "week" && (
-        <div className="flex justify-center items-center mb-4 gap-3">
+        <div className="flex flex-wrap justify-center items-center mb-4 gap-3">
           <div className="text-center">Year</div>
           <Select value={selectedYear.toString()} onValueChange={(value: string) => setSelectedYear(parseInt(value))}>
             <SelectTrigger className="p-2 border rounded w-32">
@@ -209,7 +215,7 @@ export function Overview() {
         </div>
       )}
       {filter === "year" && (
-        <div className="flex justify-center items-center mb-4 gap-3">
+        <div className="flex flex-wrap justify-center items-center mb-4 gap-3">
           <div className="text-center">Year Range</div>
           <Select value={selectedYearRange} onValueChange={(value: string) => setSelectedYearRange(value)}>
             <SelectTrigger className="p-2 border rounded w-32">

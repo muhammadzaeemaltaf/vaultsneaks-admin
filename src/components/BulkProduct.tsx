@@ -17,44 +17,73 @@ export default function BulkProductUpload() {
   const [productLogs, setProductLogs] = useState<any[]>([]);
   const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!file) return
+  const requiredFields = ["productName", "category", "price", "inventory", "status", "description"];
 
-    setUploading(true)
-    const formData = new FormData()
-    formData.append("file", file)
+  const validateProduct = (product: any) => {
+    for (const field of requiredFields) {
+      if (!product[field]) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!file) return;
+
+    setUploading(true);
+    setProductLogs([]); // Clear previous logs
+    const formData = new FormData();
+    formData.append("file", file);
 
     const arrayBuffer = await file.arrayBuffer();
     const extension = file.name.split('.').pop()?.toLowerCase();
-    const fileType = extension === 'csv'
-      ? 'csv'
-      : extension === 'xlsx'
-      ? 'xlsx'
-      : 'json';
+    const fileType = extension === 'csv' ? 'csv' : extension === 'xlsx' ? 'xlsx' : 'json';
 
     try {
-      const results = await importData(Buffer.from(arrayBuffer), fileType);
-      setProductLogs(results || []);
-      // Show top-level success if all succeeded
-      const allSuccess = results && results.every(r => r.success);
-      setResult({
-        success: allSuccess ?? false,
-        message: allSuccess
-          ? "All products were uploaded successfully"
-          : "Some products failed to upload"
+      // Callback function to update logs as products are processed
+      const updateLogs = (log: any) => {
+        setProductLogs(prevLogs => [...prevLogs, log]);
+      };
+
+      const results = await importData(Buffer.from(arrayBuffer), fileType, (log: any) => {
+        if (validateProduct(log.product)) {
+          updateLogs(log);
+        } else {
+          updateLogs({
+            productName: log.product.productName || 'N/A',
+            success: false,
+            message: `Product ${log.product.productName || 'N/A'} is missing required fields`,
+          });
+        }
       });
-      const result = await uploadProducts(formData)
-      setResult(result)
+
+      // Show final summary after all products are processed
+      const allSuccess = productLogs.length > 0 && productLogs.every(r => r.success);
+      setResult({
+        success: allSuccess,
+        message: allSuccess ? "All products were uploaded successfully" : "Some products failed to upload",
+      });
+
+      const result = await uploadProducts(formData);
+      setResult(result);
       if (result.success) {
-        router.refresh()
+        router.refresh();
       }
     } catch (error) {
-      console.error("Error uploading products:", error)
-      setResult({ success: false, message: "Error uploading products" })
+      console.error("Error uploading products:", error);
+      setResult({ success: false, message: "Error uploading products" });
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
+  };
+
+  const handleClear = () => {
+    setFile(null);
+    setResult(null);
+    setUploading(false);
+    setProductLogs([]);
   }
 
   return (
@@ -63,6 +92,7 @@ export default function BulkProductUpload() {
         <CardTitle>Bulk Product Upload</CardTitle>
       </CardHeader>
       <CardContent>
+        <p className="mb-4 text-red-500">Data must and only contain the following fields: productName, category, price, inventory, image(url), colors, status, description</p>
         <form onSubmit={handleSubmit} className="space-y-4 mb-5">
           <Input
             type="file"
@@ -70,24 +100,27 @@ export default function BulkProductUpload() {
             onChange={(e) => setFile(e.target.files?.[0] || null)}
             disabled={uploading}
           />
-         <div className="w-full flex justify-center">
-         <Button type="submit" disabled={!file || uploading} className="w-fit">
-            {uploading ? "Uploading..." : "Upload Products"}
-          </Button>
+         <div className="w-full flex justify-center space-x-4">
+           <Button type="submit" disabled={!file || uploading} className="w-fit">
+              {uploading ? "Uploading..." : "Upload Products"}
+           </Button>
+           <Button type="button" onClick={handleClear} className="w-fit">
+              Clear
+           </Button>
          </div>
         </form>
-        {result && (
-          <Alert className={result.success ? "bg-green-100" : "bg-red-100"}>
-            <AlertTitle>{result.success ? "Success" : "Error"}</AlertTitle>
-            <AlertDescription>{result.message}</AlertDescription>
-          </Alert>
-        )}
         {productLogs.map((log, index) => (
           <Alert key={index} className={log.success ? "bg-green-100" : "bg-red-100"}>
             <AlertTitle>{log.success ? "Success" : "Error"}</AlertTitle>
             <AlertDescription>{log.message}</AlertDescription>
           </Alert>
         ))}
+        {result && (
+          <Alert className={result.success ? "bg-green-100" : "bg-red-100"}>
+            <AlertTitle>{result.success ? "Success" : "Error"}</AlertTitle>
+            <AlertDescription>{result.message}</AlertDescription>
+          </Alert>
+        )}
       </CardContent>
     </Card>
   )

@@ -15,6 +15,7 @@ export default function BulkProductUpload() {
   const [uploading, setUploading] = useState(false)
   const [result, setResult] = useState<{ success: boolean; message: string; products?: Product[] } | null>(null)
   const [productLogs, setProductLogs] = useState<any[]>([]);
+  const [fileKey, setFileKey] = useState(0);
   const router = useRouter()
 
   const requiredFields = ["productName", "category", "price", "inventory", "status", "description"];
@@ -44,7 +45,19 @@ export default function BulkProductUpload() {
     try {
       // Callback function to update logs as products are processed
       const updateLogs = (log: any) => {
-        setProductLogs(prevLogs => [...prevLogs, log]);
+        // Trigger UI alert if placeholder was used
+        if (log.message.includes("Placeholder image used")) {
+          setProductLogs(prev => [
+            ...prev,
+            {
+              productName: log.product.productName || 'N/A',
+              success: false,
+              message: log.message,
+            },
+          ]);
+        } else {
+          setProductLogs(prevLogs => [...prevLogs, log]);
+        }
       };
 
       const results = await importData(Buffer.from(arrayBuffer), fileType, (log: any) => {
@@ -59,15 +72,12 @@ export default function BulkProductUpload() {
         }
       });
 
-      // Show final summary after all products are processed
-      const allSuccess = productLogs.length > 0 && productLogs.every(r => r.success);
-      setResult({
-        success: allSuccess,
-        message: allSuccess ? "All products were uploaded successfully" : "Some products failed to upload",
-      });
-
       const result = await uploadProducts(formData);
-      setResult(result);
+      if (productLogs.some(log => !log.success)) {
+        setResult({ success: false, message: "Some products failed to upload" });
+      } else {
+        setResult(result);
+      }
       if (result.success) {
         router.refresh();
       }
@@ -84,6 +94,7 @@ export default function BulkProductUpload() {
     setResult(null);
     setUploading(false);
     setProductLogs([]);
+    setFileKey(prev => prev + 1);
   }
 
   return (
@@ -95,6 +106,7 @@ export default function BulkProductUpload() {
         <p className="mb-4 text-red-500">Data must and only contain the following fields: productName, category, price, inventory, image(url), colors, status, description</p>
         <form onSubmit={handleSubmit} className="space-y-4 mb-5">
           <Input
+            key={fileKey}
             type="file"
             accept=".json,.csv,.xlsx"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
@@ -110,7 +122,7 @@ export default function BulkProductUpload() {
          </div>
         </form>
         {productLogs.map((log, index) => (
-          <Alert key={index} className={log.success ? "bg-green-100" : "bg-red-100"}>
+          <Alert key={index} className={`mb-4 ${log.success ? "bg-green-100" : "bg-red-100"}`}>
             <AlertTitle>{log.success ? "Success" : "Error"}</AlertTitle>
             <AlertDescription>{log.message}</AlertDescription>
           </Alert>

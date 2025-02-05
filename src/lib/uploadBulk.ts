@@ -18,10 +18,24 @@ async function uploadImageToSanity(imageUrl: any) {
       filename: imageUrl.split('/').pop()
     });
     console.log(`Image uploaded successfully: ${asset._id}`);
-    return asset._id;
+    return { assetId: asset._id, usedPlaceholder: false };
   } catch (error) {
     console.error('Failed to upload image:', imageUrl, error);
-    return null;
+    // Use placeholder image
+    const placeholderUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkCQcSxlFCe0NU3wobe98LtfWnaEI-x3UKqQ&s";
+    try {
+      const proxyUrl = `/api/fetchImage?url=${encodeURIComponent(placeholderUrl)}`;
+      const response = await axios.get(proxyUrl, { responseType: 'arraybuffer' });
+      const buffer = Buffer.from(response.data);
+      const asset = await client.assets.upload('image', buffer, {
+        filename: placeholderUrl.split('/').pop()
+      });
+      console.log(`Placeholder image uploaded successfully: ${asset._id}`);
+      return { assetId: asset._id, usedPlaceholder: true };
+    } catch (placeholderError) {
+      console.error('Failed to upload placeholder image:', placeholderUrl, placeholderError);
+      return { assetId: null, usedPlaceholder: true };
+    }
   }
 }
 
@@ -50,9 +64,19 @@ export async function importData(fileBuffer: Buffer, fileType: string, updateLog
 
     for (const product of products) {
       try {
-        let imageRef = null;
+        let imageRef: any = null;
         if (product.image) {
-          imageRef = await uploadImageToSanity(product.image);
+          const { assetId, usedPlaceholder } = await uploadImageToSanity(product.image);
+          if (usedPlaceholder) {
+            updateLogs({
+              product,
+              success: false,
+              message: `Error uploading Image: Placeholder image used for ${product.productName || 'Product'}`,
+            });
+          }
+          if (assetId) {
+            imageRef = assetId;
+          }
         }
 
         if (typeof product.colors === 'string') {
@@ -94,6 +118,19 @@ export async function importData(fileBuffer: Buffer, fileType: string, updateLog
 
         if (!categoryRef) {
           throw new Error(`Category "${product.category}" could not be created or fetched.`);
+        }
+
+        const existingProduct = await client.fetch(
+          `*[_type=="product" && productName == $productName][0]`,
+          { productName: product.productName }
+        );
+        if (existingProduct) {
+          updateLogs({
+            product,
+            success: false,
+            message: `Product ${product.productName || 'N/A'} already exists`,
+          });
+          continue;
         }
 
         const sanityProduct = {

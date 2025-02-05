@@ -137,8 +137,12 @@ export default function ProductForm() {
       const result = await addProduct(formData);
       toast.success("Product added successfully!");
       router.push("/products");
-    } catch (error) {
-      toast.error("Failed to add product.");
+    } catch (error: any) {
+      if (error.message === "Product with this name already exists.") {
+        toast.error("Product with this name already exists.");
+      } else {
+        toast.error("Failed to add product.");
+      }
       console.error("Failed to add product:", error);
     } finally {
       setIsSubmitting(false);

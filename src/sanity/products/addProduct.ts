@@ -1,6 +1,7 @@
 import axios from "axios";
 import { client } from "../lib/client";
 import { ProductFormData } from "@/app/(admin)/products/add/page";
+import { getProductByName } from "./getProductByName";
 
 async function uploadImageToSanity(imageUrl: string) {
   try {
@@ -18,9 +19,14 @@ async function uploadImageToSanity(imageUrl: string) {
   }
 }
 
-
 export const addProduct = async (productData: ProductFormData) => {
   try {
+    // Check if a product with the same name already exists
+    const existingProducts = await getProductByName(productData.productName);
+    if (existingProducts.length > 0) {
+      throw new Error("Product with this name already exists.");
+    }
+
     let imageRef = null;
     if (productData.image) {
       imageRef = await uploadImageToSanity(productData.image);

@@ -87,7 +87,26 @@ export function Overview() {
         }
       }
 
-      const formattedData = Object.keys(filteredData).map(key => ({
+      // Sort keys if filter is week so weeks show in order
+      let keys = Object.keys(filteredData);
+      if (filter === "week") {
+        keys.sort((a, b) => {
+          const aWeek = parseInt(a.split("-W")[1]);
+          const bWeek = parseInt(b.split("-W")[1]);
+          return aWeek - bWeek;
+        });
+      } else if (filter === "month") {
+        if (selectedMonthForMonth === "all") {
+          const monthsOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          keys.sort((a, b) => monthsOrder.indexOf(a) - monthsOrder.indexOf(b));
+        } else {
+          keys.sort((a, b) => parseInt(a) - parseInt(b));
+        }
+      } else {
+        keys.sort(); // optional for other filters
+      }
+
+      const formattedData = keys.map(key => ({
         name: key,
         total: filteredData[key]
       }));

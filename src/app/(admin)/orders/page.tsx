@@ -193,7 +193,7 @@ export default function OrderPage() {
           </DropdownMenu>
         </div>
       </div>
-      <div className="bg-white overflow-auto w-[95vw] text-xs"> 
+      <div className="bg-white overflow-auto w-[95vw] md:w-auto text-xs"> 
         {loading ? (
           <Table className="text-theme">
             <TableHeader>

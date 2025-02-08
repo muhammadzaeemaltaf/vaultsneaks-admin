@@ -123,7 +123,7 @@ const SingleOrder: React.FC<SingleOrderProps> = ({ orderNumber, onClose }) => {
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center text-green-600 dark:text-green-400">
                       <span className="text-2xl font-bold">
-                        {order.currency} {order.totalPrice}
+                        {order.currency} {(order.totalPrice)?.toFixed(2)}
                       </span>
                     </div>
                   </div>

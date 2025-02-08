@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, MoreHorizontal, Edit, Trash, RefreshCw, Download } from "lucide-react";
+import { Search, MoreHorizontal, Edit, Trash, RefreshCw, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState, useRef } from "react";
@@ -42,6 +42,8 @@ const highlightText = (text: string, highlight: string) => {
 export default function OrderPage() {
   const [orders, setOrders] = useState<ORDER_QUERYResult>([]);
   const [searchTerm, setSearchTerm] = useState("")
+  const [sortField, setSortField] = useState<"customerName" | "orderDate" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null); // Add state for selected order
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null); // Add state for updating status
@@ -81,12 +83,36 @@ export default function OrderPage() {
     setLoading(false);
   };
 
+  const handleSort = (field: "customerName" | "orderDate") => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
   const filteredOrders = orders.filter(
     (order) =>
       order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.email?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  );
+
+  let sortedOrders = [...filteredOrders];
+  if (sortField === "customerName") {
+    sortedOrders.sort((a, b) => {
+      const aVal = a.customerName ? a.customerName.toLowerCase() : "";
+      const bVal = b.customerName ? b.customerName.toLowerCase() : "";
+      return sortDirection === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+  } else if (sortField === "orderDate") {
+    sortedOrders.sort((a, b) => {
+      const aVal = a.orderDate ? new Date(a.orderDate).getTime() : 0;
+      const bVal = b.orderDate ? new Date(b.orderDate).getTime() : 0;
+      return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
+    });
+  }
 
   const handleRowClick = (event: React.MouseEvent, orderNumber: string) => {
     // Prevent row click if the event target is a button or inside a button
@@ -231,8 +257,12 @@ export default function OrderPage() {
               <TableRow>
                 <TableHead>Index</TableHead> {/* New index header */}
                 <TableHead>Order Number</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead className="whitespace-nowrap">Order Date</TableHead>
+                <TableHead onClick={() => handleSort("customerName")} className="cursor-pointer">
+                  Customer {sortField === "customerName" && (sortDirection === "asc" ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
+                </TableHead>
+                <TableHead onClick={() => handleSort("orderDate")} className="cursor-pointer whitespace-nowrap">
+                  Order Date {sortField === "orderDate" && (sortDirection === "asc" ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
+                </TableHead>
                 <TableHead>Estimated Delievery Date</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
@@ -241,7 +271,7 @@ export default function OrderPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredOrders.map((order, index) => (
+              {sortedOrders.map((order, index) => (
                 <TableRow key={order._id} onClick={(e) => handleRowClick(e, order.orderNumber ?? "")} className="cursor-pointer">
                   {deletingOrder === order._id ? (
                     <>
@@ -265,7 +295,7 @@ export default function OrderPage() {
                       </TableCell>
                       <TableCell>{order.orderDate ? new Date(order.orderDate).toDateString() : "N/A"}</TableCell>
                       <TableCell>{order.estimatedDeliveryDate ? new Date(order.estimatedDeliveryDate).toDateString() : "N/A"}</TableCell>
-                      <TableCell className="whitespace-nowrap">{`${order.currency} ${order.totalPrice ?? 0}`}</TableCell>
+                      <TableCell className="whitespace-nowrap">{`${order.currency} ${(order.totalPrice)?.toFixed(2) ?? 0}`}</TableCell>
                       <TableCell>
                         {updatingStatus === order._id ? (
                           <Skeleton className="h-8 w-20" />
